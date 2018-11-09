@@ -1,3 +1,19 @@
+'''
+MiMSI Vector Generation Utility
+
+Used to create vectors utilized by the MiMSI model during training and evaluation of MSI status in 
+Next-Gen Sequencing Results. Reads a list of microsatellite regions provided via command line argument
+and creates an instance vector for every region from a tumor/normal pair of bam files.
+
+@author: John Ziegler
+Memorial Sloan Kettering Cancer Center 
+Nov. 2018
+
+zieglerj@mskcc.org
+
+'''
+
+
 import numpy as np
 import multiprocessing as mp,os
 import warnings

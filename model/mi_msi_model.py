@@ -1,3 +1,14 @@
+'''
+MiMSI Model
+
+@author: John Ziegler
+Memorial Sloan Kettering Cancer Center 
+Nov. 2018
+
+zieglerj@mskcc.org
+
+'''
+
 import torch
 import torch.nn as nn
 

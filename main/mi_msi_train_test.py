@@ -1,3 +1,17 @@
+'''
+MiMSI Train/Test
+
+Used to train and validate a MiMSI model from scratch
+
+@author: John Ziegler
+Memorial Sloan Kettering Cancer Center 
+Nov. 2018
+
+zieglerj@mskcc.org
+
+'''
+
+
 from __future__ import print_function
 
 import numpy as np

@@ -1,3 +1,16 @@
+'''
+MiMSI Evalution Utility
+
+Used to evaluate (test) a sample or samples for MSI status based on a tumor/normal vector
+
+@author: John Ziegler
+Memorial Sloan Kettering Cancer Center 
+Nov. 2018
+
+zieglerj@mskcc.org
+
+'''
+
 from __future__ import print_function
 
 import numpy as np
@@ -14,7 +27,7 @@ from model.mi_msi_model import MSIModel
 
 parser = argparse.ArgumentParser(description='MiMSI Sample(s) Evalution Utility')
 parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables CUDA for use off GPU, if this is not specified the utility will check availability of torch.cuda')
-parser.add_argument('--saved-model', default="mi_msi_1.model", help='name of the saved model weights to load')
+parser.add_argument('--saved-model', default="./model/mimsi_mskcc_impact.model", help='name of the saved model weights to load')
 parser.add_argument('--vector-location', default="./eval", help='location of generated vectors to evaluate')
 parser.add_argument('--save', default=True, help='save the results of the evaluation to a numpy array')
 

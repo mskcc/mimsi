@@ -1,3 +1,16 @@
+'''
+MiMSI Data Loader
+
+Torch Data Loader for MiMSI
+
+@author: John Ziegler
+Memorial Sloan Kettering Cancer Center 
+Nov. 2018
+
+zieglerj@mskcc.org
+
+'''
+
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader

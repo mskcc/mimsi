@@ -1,3 +1,14 @@
+'''
+Bam2Tensor Conversion Class
+
+@author: John Ziegler
+Memorial Sloan Kettering Cancer Center 
+Nov. 2018
+
+zieglerj@mskcc.org
+
+'''
+
 import pysam
 import numpy as np
 from collections import deque
