@@ -65,7 +65,7 @@ class MSIBags(Dataset):
             locations = np.load(loc_file)
             return bag, label, locations, sample_id
 
-        return bag, label, None, sample_id
+        return bag, label, 0, sample_id
 
 
 if __name__ == "__main__":

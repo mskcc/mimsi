@@ -20,7 +20,7 @@ class MSIModel(nn.Module):
         self.batch_size = 1
 
         #Input is N x (3 x 100 x 40)
-	    self.conv1 = nn.Sequential(
+	self.conv1 = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=3, padding=1), #32 x 100 x 40
             nn.ReLU(),
             nn.MaxPool2d(2, stride=2), #32 x 50 x 20
@@ -66,6 +66,12 @@ class MSIModel(nn.Module):
             nn.Conv2d(64, 64, kernel_size=3, padding=1) #64 x 25 x 10
         )
 
+        # Not currently used, but left in the event an extra resnet block
+        # needs to be added
+        self.downsample_2 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=1, stride=1) #128 x 13 x 5
+        )
+
         ''' 
             This is the section of the model that takes all of the instance-level 
             feature embeddings and creates the final N x num_features vectors for 
@@ -73,7 +79,7 @@ class MSIModel(nn.Module):
             sample level embedding before input into the final classification
             layer
         '''
-        self.final_instance_features = nn.Sequential(
+        self.feature_extractor_part2 = nn.Sequential(
             nn.Linear(64 * 25 * 10, self.num_features),
             nn.ReLU(),
             nn.Linear(self.num_features, self.num_features),
@@ -86,7 +92,7 @@ class MSIModel(nn.Module):
             nn.Sigmoid()
         )
 
-	    self.relu = nn.ReLU()
+        self.relu = nn.ReLU()
 
 
     def forward(self, x):
@@ -133,11 +139,11 @@ class MSIModel(nn.Module):
         final_instance_embed = self.relu(out_4_2)
 
         final_instance_embed = final_instance_embed.view(-1, 64 * 25 * 10)
-        I = self.final_instance_features(final_instance_embed)  # N x num_features     
+        I = self.feature_extractor_part2(final_instance_embed)  # N x num_features     
 
         # S is the sample-level embedding, which is the aggregation (via mean) of 
         # each microsatellite instance vector
-	    S = torch.mean(I, 0) 
+	S = torch.mean(I, 0) 
 
         Y_prob = self.classifier(S)
 

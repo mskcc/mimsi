@@ -13,7 +13,7 @@ zieglerj@mskcc.org
 
 '''
 
-
+import argparse
 import numpy as np
 import multiprocessing as mp,os
 import warnings
@@ -193,7 +193,7 @@ def save_bag(sample, label, data, locations):
 if __name__ == "__main__":
     
     # If a file is given use that to generate our data
-    if args.case_list is not None:
+    if args.case_list is not None and args.case_list != "":
 
         with open(args.case_list, 'r') as f:
             lines = f.read().splitlines()

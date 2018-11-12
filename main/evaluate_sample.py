@@ -27,9 +27,11 @@ from model.mi_msi_model import MSIModel
 
 parser = argparse.ArgumentParser(description='MiMSI Sample(s) Evalution Utility')
 parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables CUDA for use off GPU, if this is not specified the utility will check availability of torch.cuda')
-parser.add_argument('--saved-model', default="./model/mimsi_mskcc_impact.model", help='name of the saved model weights to load')
+parser.add_argument('--saved-model', default="mimsi_mskcc_impact.model", help='name of the saved model weights to load')
 parser.add_argument('--vector-location', default="./eval", help='location of generated vectors to evaluate')
-parser.add_argument('--save', default=True, help='save the results of the evaluation to a numpy array')
+parser.add_argument('--save', default=False, action='store_true', help='save the results of the evaluation to a numpy array')
+parser.add_argument('--name', default="test_run_001", help='name of the run, this will be the filename for any saved results')
+parser.add_argument('--seed', type=int, default=2, metavar='S', help='Random Seed (default: 2)')
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -55,7 +57,7 @@ def evaluate():
     result_list = []
 
     with torch.no_grad():
-        for batch_idx, (data, label, sample_id) in enumerate(eval_loader):
+        for batch_idx, (data, label, _, sample_id) in enumerate(eval_loader):
             # Since we're evaluating here we're just using a default label
             # of -1 and ignoring the loss
             bag_label = label
@@ -69,9 +71,10 @@ def evaluate():
 
             # Record the result as a probability 
             Y_prob = Y_prob.item()
-            result = [patient, Y_prob]
+            result = [sample_id[0], Y_prob]
             result_list.append(result)
-            print(patient + "\t" + str(Y_prob) + "\n")
+            
+            print(sample_id[0] + "\t" + str(Y_prob) + "\n")
 
     if args.save:
         np.save('./' + args.name + '_results.npy', result_list)
