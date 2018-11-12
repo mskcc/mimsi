@@ -25,34 +25,7 @@ from sklearn import metrics
 from data.data_loader import MSIBags
 from model.mi_msi_model import MSIModel
 
-parser = argparse.ArgumentParser(description='MiMSI Sample(s) Evalution Utility')
-parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables CUDA for use off GPU, if this is not specified the utility will check availability of torch.cuda')
-parser.add_argument('--saved-model', default="mimsi_mskcc_impact.model", help='name of the saved model weights to load')
-parser.add_argument('--vector-location', default="./eval", help='location of generated vectors to evaluate')
-parser.add_argument('--save', default=False, action='store_true', help='save the results of the evaluation to a numpy array')
-parser.add_argument('--name', default="test_run_001", help='name of the run, this will be the filename for any saved results')
-parser.add_argument('--seed', type=int, default=2, metavar='S', help='Random Seed (default: 2)')
-
-args = parser.parse_args()
-args.cuda = not args.no_cuda and torch.cuda.is_available()
-
-torch.manual_seed(args.seed)
-if args.cuda:
-    print('\nGPU is Enabled!')
-
-print('Evaluating Samples, Lets go!!!')
-loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-
-eval_loader = data_utils.DataLoader(MSIBags(args.vector_location, False, False),
-                                     batch_size=1,
-                                     shuffle=False,
-                                     **loader_kwargs)
-model = MSIModel()
-if args.cuda:
-    model.cuda()
-
-
-def evaluate():
+def evaluate(model, cuda, save, name):
     model.eval()
     result_list = []
 
@@ -62,7 +35,7 @@ def evaluate():
             # of -1 and ignoring the loss
             bag_label = label
 
-            if args.cuda:
+            if cuda:
                 data, bag_label = data.cuda(), bag_label.cuda()
             data, bag_label = Variable(data), Variable(bag_label)
 
@@ -76,12 +49,41 @@ def evaluate():
             
             print(sample_id[0] + "\t" + str(Y_prob) + "\n")
 
-    if args.save:
-        np.save('./' + args.name + '_results.npy', result_list)
+    if save:
+        np.save('./' + name + '_results.npy', result_list)
 
+
+def main(saved_model, vector_location, no_cuda, seed, save, name):
+    cuda = not no_cuda and torch.cuda.is_available()
+
+    torch.manual_seed(seed)
+    if cuda:
+        print('\nGPU is Enabled!')
+
+    print('Evaluating Samples, Lets go!!!')
+    loader_kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
+
+    eval_loader = data_utils.DataLoader(MSIBags(vector_location, False, False),
+                                                batch_size=1,
+                                                shuffle=False,
+                                                **loader_kwargs)
+    
+    model = MSIModel()
+    if cuda:
+        model.cuda()
+    
+    model.load_state_dict(torch.load(saved_model))
+    evaluate(model, cuda, save, name)
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='MiMSI Sample(s) Evalution Utility')
+    parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables CUDA for use off GPU, if this is not specified the utility will check availability of torch.cuda')
+    parser.add_argument('--saved-model', default="mimsi_mskcc_impact.model", help='name of the saved model weights to load')
+    parser.add_argument('--vector-location', default="./eval", help='location of generated vectors to evaluate')
+    parser.add_argument('--save', default=False, action='store_true', help='save the results of the evaluation to a numpy array')
+    parser.add_argument('--name', default="test_run_001", help='name of the run, this will be the filename for any saved results')
+    parser.add_argument('--seed', type=int, default=2, metavar='S', help='Random Seed (default: 2)')
 
-    model.load_state_dict(torch.load(args.saved_model))
-    evaluate()
+    args = parser.parse_args()
+    main(args.saved_model, args.vector_location, args.no_cuda, args.seed, args.save, args.name)
