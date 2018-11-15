@@ -25,7 +25,7 @@ from sklearn import metrics
 from data.data_loader import MSIBags
 from model.mi_msi_model import MSIModel
 
-def evaluate(model, cuda, save, name):
+def evaluate(model, eval_loader, cuda, save, name):
     model.eval()
     result_list = []
 
@@ -73,7 +73,7 @@ def main(saved_model, vector_location, no_cuda, seed, save, name):
         model.cuda()
     
     model.load_state_dict(torch.load(saved_model))
-    evaluate(model, cuda, save, name)
+    evaluate(model, eval_loader, cuda, save, name)
 
 
 if __name__ == "__main__":

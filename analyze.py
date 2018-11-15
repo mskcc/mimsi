@@ -26,7 +26,7 @@ from torch.autograd import Variable
 from sklearn import metrics
 
 from data.generate_vectors.create_data import main as create_data
-from main.evaluate_sample import main as evaluate
+from main.evaluate_sample import main as run_eval
 
 def main(case_list, tumor_bam, normal_bam, case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, name):
 
@@ -39,7 +39,7 @@ def main(case_list, tumor_bam, normal_bam, case_id, ms_list, save_loc, cores, sa
         return False
 
     try:
-        evaluate(saved_model, save_loc, no_cuda, seed, save, name)
+        run_eval(saved_model, save_loc, no_cuda, seed, save, name)
     except Exception as e:
         print("There was an error while evaluating samples: \n")
         print(e)
