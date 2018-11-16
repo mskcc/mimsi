@@ -1,0 +1,16 @@
+#!/bin/bash
+#BSUB -J mimsi_train_test
+#BSUB -n 2
+#BSUB -R span[ptile=2]
+#BSUB -R rusage[mem=12]
+#BSUB -W 05:00
+#BSUB -o %J.stdout
+#BSUB -eo %J.stderr
+
+
+source {/path/to/your/virtualenv}
+module load cuda
+module load cudnn
+export PYTHONPATH=$PYTHONPATH:{deployment_location}/mimsi/:{deployment_location}/mimsi/data:{deployment_location}/mimsi/model
+cd {deployment_location}/mimsi/main/
+nohup python mi_msi_train_test.py --name 'model_name' --train-location /path/to/train/vectors/ --test-location /path/to/train/vectors/  --save 1 > train_test.log
