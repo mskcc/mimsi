@@ -58,7 +58,7 @@ def process(line, bamfile, normalbamfile, covg):
     it along with the location information of the loci
 '''
 def process_wrapper(bam_filename, norm_filename, chunkStart, chunkSize, covg):
-    with open("microsatellites.list",'r') as ms_list:
+    with open(args.microsatellites_list,'r') as ms_list:
         # only look at microsatellites assigned to this process (chunks)
         ms_list.seek(chunkStart)
         lines = ms_list.read(chunkSize).splitlines()
@@ -116,7 +116,7 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
     all_instances = []
     all_locations = []
 
-    pool = mp.Pool(cores)
+    pool = mp.Pool(int(cores))
     jobs = []
 
     print("creating jobs")
@@ -211,6 +211,7 @@ def main(case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, 
                 
                 except Exception as e:
                     print(e)
+                    print(traceback.format_exc())
                     break
 
     # Otherwise we are just going to convert the given sample
