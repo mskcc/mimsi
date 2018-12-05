@@ -121,6 +121,6 @@ Also, feel free to submit a PR. We'd love to see the community get involved and 
 
 ## License
 
-© 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute, and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 or later. See the [LICENSE.md](LICENSE.md) file for details
+© 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute, and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 or later. See the [LICENSE](LICENSE) file for details
 
 
