@@ -7,6 +7,10 @@ Nov. 2018
 
 zieglerj@mskcc.org
 
+© 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute, 
+and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, 
+either version 3 or later. See the LICENSE file for details
+
 '''
 
 import torch
@@ -20,7 +24,7 @@ class MSIModel(nn.Module):
         self.batch_size = 1
 
         #Input is N x (3 x 100 x 40)
-	self.conv1 = nn.Sequential(
+        self.conv1 = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=3, padding=1), #32 x 100 x 40
             nn.ReLU(),
             nn.MaxPool2d(2, stride=2), #32 x 50 x 20
@@ -143,7 +147,7 @@ class MSIModel(nn.Module):
 
         # S is the sample-level embedding, which is the aggregation (via mean) of 
         # each microsatellite instance vector
-	S = torch.mean(I, 0) 
+        S = torch.mean(I, 0) 
 
         Y_prob = self.classifier(S)
 
