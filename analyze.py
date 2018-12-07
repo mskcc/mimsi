@@ -12,7 +12,7 @@ Nov. 2018
 
 zieglerj@mskcc.org
 
-© 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute, 
+(c) 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute, 
 and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, 
 either version 3 or later. See the LICENSE file for details
 
