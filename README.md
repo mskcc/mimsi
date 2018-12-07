@@ -5,6 +5,11 @@ A deep, multiple instance learning based classifier for identifying Microsatelli
 
 Made with :heart: and lots of :coffee: by ClinBx @ Memorial Sloan Kettering Cancer Center
 
+## Summary
+Microsatellite Instability (MSI) is a phenotypic measure of deficiencies in DNA mismatch repair (MMR) machinery. These deficiencies lead to replication slippage in microsatellite regions, resulting in varying lengths of deletions in tumor samples. Detecting proper MSI status with high sensitivity and specificity in cancer patients is a critical priority in clinical genomics, especially after the FDA's recent approval of a targeted therapy for advanced cancer patients with MSI-high phenotype pan-cancer.
+
+Current methods that determine MSI status using sequencing data compare the distributions of nucleotide deletion lengths between tumor and a matched normal with a statistical test. These methods lose sensitivity to accurately assess MSI status in some clinical situations, like low tumor purity samples or samples with low sequencing coverage. MiMSI is a multiple instance learning (MIL) model for predicting MSI phenotype from next-generation sequencing data that demonstrates very high sensitivity even in clinical situations where low purity samples are common.
+
 ## Getting Started
 
 ### Setup & Install
@@ -37,9 +42,9 @@ pip install -r requirements.txt
 
 ## Running a Full Analysis
 
-MiMSI is comprised of two main steps. The first an NGS Vector creation stage, where the aligned reads are encoded into a form that can be interpreted by our model. The second stage is the actual evalution, where we input the collection of microsatellite instances for a sample into the pre-trained model to determine a classification for the collection. For convienence, we've packaged both of these stages into a python script that executes them together. If you'd like to run the steps individually (perhaps to train the model from scratch) please see the section "Running Analysis Components Separately" below.
+MiMSI is comprised of two main steps. The first is an NGS Vector creation stage, where the aligned reads are encoded into a form that can be interpreted by our model. The second stage is the actual evalution, where we input the collection of microsatellite instances for a sample into the pre-trained model to determine a classification for the collection. For convienence, we've packaged both of these stages into a python script that executes them together. If you'd like to run the steps individually (perhaps to train the model from scratch) please see the section "Running Analysis Components Separately" below.
 
-For more details on the MiMSI methods check out our pre-print, coming soon.
+More details on the MiMSI methods will be available in our pre-print, coming soon.
 
 
 ### Required files
@@ -115,9 +120,9 @@ Just note that you will need labels for any vectors utilized in training and tes
 ## Questions, Comments, Collaborations?
 Please feel free to reach out, I'm available via email - zieglerj@mskcc.org
 
-If you have any issues or feature requests with the tool please don't hesitate to create an issue on this repo. We will address it as soon as we can.
+If you have any issues or feature requests with the tool please don't hesitate to create an issue on this repo. We will address them as soon as possible.
 
-Also, feel free to submit a PR. We'd love to see the community get involved and help utilize machine learning to improve cancer care!
+Also, PRs are more than welcome. We'd love to see the community get involved and help utilize machine learning to improve cancer care!
 
 ## License
 
