@@ -35,9 +35,10 @@ def evaluate(model, eval_loader, cuda, save, name):
 
     with torch.no_grad():
         for batch_idx, (data, label, _, sample_id) in enumerate(eval_loader):
+             
             # Since we're evaluating here we're just using a default label
             # of -1 and ignoring the loss
-            bag_label = label
+            bag_label = torch.tensor(int(label[0]))
 
             if cuda:
                 data, bag_label = data.cuda(), bag_label.cuda()
