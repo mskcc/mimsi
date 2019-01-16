@@ -35,7 +35,7 @@ class Bam2Tensor(object):
     def createIndividualBamTensor(self, read_iterator, cols):
         cols = self.end - self.start
         result_array = np.zeros((0, cols, 3))
-        required_coverage = self.coverage
+        required_coverage = int(self.coverage)
 
         row_counter = 0
         try:

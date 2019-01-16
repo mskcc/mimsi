@@ -37,19 +37,36 @@ class MSIBags(Dataset):
     def __len__(self):
         return len(self.data_file_list)
 
+    def __parsefilename__(self, filename):
+        '''format of the vector filename is:
+            {sample_id}_{label}_{type_of_file}.npy
+            where the label is either -1 or 1 and the type of file is either "data" or "locations"
+
+            This helper method parses out the sample_id and label, and takes into account 
+            corner cases like the client using "_" in their sample name.
+        '''
+
+        split_filename = filename.split("_")
+        label = split_filename[-2] #-1 index is data/locations, -2 is label
+        sample_portion = split_filename[:-2]
+        if len(sample_portion) > 1:
+            # underscore must have been used since total length is over 3
+            # need to join the sample_id back together
+            sample_id = "_".join(sample_portion)
+        else:
+            # underscore wasn't used, just grab the first (and only) element
+            sample_id = sample_portion[0]
+
+        return sample_id, label
+
+
 
     def __getitem__(self, idx):
         data_file = os.path.join(self.root_dir, self.data_file_list[idx])
-
-        if self.include_locations:
-            loc_file = os.path.join(self.root_dir, self.data_file_list[idx])
-
-        if self.is_labeled:
-            label = int(self.data_file_list[idx].split("_")[1])
-        else:
-            label = -1
+        loc_file = os.path.join(self.root_dir, self.data_file_list[idx]).replace("data", "locations")
         
-        sample_id = self.data_file_list[idx].split("_")[0]
+        sample_id, label = self.__parsefilename__(self.data_file_list[idx])
+
         bag = np.load(data_file)
         bag = [np.concatenate((entry,np.zeros((100,40-entry.shape[1],3))), axis=1) for entry in bag]
         bag = np.array(bag)
