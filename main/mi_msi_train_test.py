@@ -26,8 +26,8 @@ import torch.optim as optim
 from torch.autograd import Variable
 from sklearn import metrics
 
-from data.data_loader import MSIBags
-from model.mi_msi_model import MSIModel
+from .data.data_loader import MSIBags
+from .model.mi_msi_model import MSIModel
 
 # Training settings
 parser = argparse.ArgumentParser(description='MiMSI - A Multiple Instance Learning Model for detecting microsatellite instability in NGS data')
