@@ -29,8 +29,8 @@ import torch.optim as optim
 from torch.autograd import Variable
 from sklearn import metrics
 
-from data.generate_vectors.create_data import main as create_data
-from main.evaluate_sample import main as run_eval
+from .data.generate_vectors.create_data import main as create_data
+from .main.evaluate_sample import main as run_eval
 
 def main(case_list, tumor_bam, normal_bam, case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, name):
 

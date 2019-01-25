@@ -15,8 +15,6 @@ either version 3 or later. See the LICENSE file for details
 
 '''
 
-from __future__ import print_function
-
 import numpy as np
 
 import argparse
