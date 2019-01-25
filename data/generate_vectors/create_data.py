@@ -22,7 +22,7 @@ import numpy as np
 import multiprocessing as mp,os
 import warnings
 import pysam
-from bam2tensor import Bam2Tensor
+from .bam2tensor import Bam2Tensor
 import traceback
 
 
