@@ -5,7 +5,7 @@ python:
     - 3.5
     - 3.6
 install:
-    - sudo apt-get -y update
+    - sudo apt-get update
     - sudo apt-get -y install r-base
     - pip install codecov
     - pip install -r requirements.txt
