@@ -7,8 +7,8 @@ python:
 before_install:
     - sudo apt-get -y update
 install:
-    - pip install codecov --progress-bar off
-    - pip install -r requirements.txt --progress-bar off
+    - pip install codecov --quiet 
+    - pip install -r requirements.txt --quiet 
 script:
     - nosetests
 after_success:
