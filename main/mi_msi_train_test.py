@@ -18,6 +18,7 @@ either version 3 or later. See the LICENSE file for details
 
 
 import numpy as np
+import os
 
 import argparse
 import torch
@@ -37,8 +38,8 @@ parser.add_argument('--reg', type=float, default=5e-4, metavar='R', help='Weight
 parser.add_argument('--seed', type=int, default=2, metavar='S', help='Random Seed (default: 2)')
 parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables CUDA training for use off GPU, if this is not specified the utility will check availability of torch.cuda')
 parser.add_argument('--name', default="mi_msi_1", help='Name of the model, ')
-parser.add_argument('--train-location', default="./train", help='Directory Location for Training Data')
-parser.add_argument('--test-location', default="./test", help='Directory Location for Testing Data')
+parser.add_argument('--train-location', default=os.getcwd(), help='Directory Location for Training Data')
+parser.add_argument('--test-location', default=os.getcwd(), help='Directory Location for Testing Data')
 parser.add_argument('--save', default=False, help='Save the model weights to disk after training')
 
 
