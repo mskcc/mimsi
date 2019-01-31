@@ -191,6 +191,10 @@ if __name__ == "__main__":
         'optimizer': {}
     }
 
+    if len(train_loader) == 0:
+        print('No training data supplied! Please indicate a directory containing generated NGS vectors in .npy format.')
+        return 
+
     print('Training the Model... \n')
     for epoch in range(1, args.epochs + 1):
         train_loss, train_error = train(epoch)
