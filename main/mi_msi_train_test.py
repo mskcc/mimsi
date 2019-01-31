@@ -19,6 +19,7 @@ either version 3 or later. See the LICENSE file for details
 
 import numpy as np
 import os
+import sys
 
 import argparse
 import torch
@@ -193,7 +194,7 @@ if __name__ == "__main__":
 
     if len(train_loader) == 0:
         print('No training data supplied! Please indicate a directory containing generated NGS vectors in .npy format.')
-        return 
+        sys.exit() 
 
     print('Training the Model... \n')
     for epoch in range(1, args.epochs + 1):
