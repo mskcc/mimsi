@@ -24,8 +24,8 @@ import torch.optim as optim
 from torch.autograd import Variable
 from sklearn import metrics
 
-from data.data_loader import MSIBags
-from model.mi_msi_model import MSIModel
+from ..data.data_loader import MSIBags
+from ..model.mi_msi_model import MSIModel
 
 def evaluate(model, eval_loader, cuda, save, name):
     model.eval()

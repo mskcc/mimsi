@@ -18,6 +18,8 @@ either version 3 or later. See the LICENSE file for details
 
 
 import numpy as np
+import os
+import sys
 
 import argparse
 import torch
@@ -26,8 +28,8 @@ import torch.optim as optim
 from torch.autograd import Variable
 from sklearn import metrics
 
-from data.data_loader import MSIBags
-from model.mi_msi_model import MSIModel
+from ..data.data_loader import MSIBags
+from ..model.mi_msi_model import MSIModel
 
 # Training settings
 parser = argparse.ArgumentParser(description='MiMSI - A Multiple Instance Learning Model for detecting microsatellite instability in NGS data')
@@ -37,8 +39,8 @@ parser.add_argument('--reg', type=float, default=5e-4, metavar='R', help='Weight
 parser.add_argument('--seed', type=int, default=2, metavar='S', help='Random Seed (default: 2)')
 parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables CUDA training for use off GPU, if this is not specified the utility will check availability of torch.cuda')
 parser.add_argument('--name', default="mi_msi_1", help='Name of the model, ')
-parser.add_argument('--train-location', default="./train", help='Directory Location for Training Data')
-parser.add_argument('--test-location', default="./test", help='Directory Location for Testing Data')
+parser.add_argument('--train-location', default="./main", help='Directory Location for Training Data')
+parser.add_argument('--test-location', default="./main", help='Directory Location for Testing Data')
 parser.add_argument('--save', default=False, help='Save the model weights to disk after training')
 
 
@@ -123,7 +125,10 @@ def test():
 
     incorrect = []
 
-    
+    if len(test_loader) == 0:
+        print('No testing data supplied! Please indicate a directory containing generated NGS vectors in .npy format.')
+        return
+        
     with torch.no_grad():
         for batch_idx, (data, label, locations, sample_id) in enumerate(test_loader):
             bag_label = label
@@ -189,6 +194,10 @@ if __name__ == "__main__":
         'state_dict': {},
         'optimizer': {}
     }
+
+    if len(train_loader) == 0:
+        print('No training data supplied! Please indicate a directory containing generated NGS vectors in .npy format.')
+        sys.exit() 
 
     print('Training the Model... \n')
     for epoch in range(1, args.epochs + 1):

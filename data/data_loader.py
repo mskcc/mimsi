@@ -28,11 +28,11 @@ class MSIBags(Dataset):
         self.file_list = os.listdir(root_dir)
         self.is_labeled = labeled
         self.include_locations = include_locations
-        self.data_file_list = filter(lambda x: "data" in x, self.file_list) #parse out only samples
+        self.data_file_list = [x for x in self.file_list if "data" in x] #parse out only samples
 
         self.loc_file_list = []
         if self.include_locations:
-            self.loc_file_list = filter(lambda x: "locations" in x, self.file_list) #parse out location files
+            self.loc_file_list = [x for x in self.file_list if "locations" in x] #parse out location files
 
     def __len__(self):
         return len(self.data_file_list)
