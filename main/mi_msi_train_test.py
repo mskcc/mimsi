@@ -125,7 +125,10 @@ def test():
 
     incorrect = []
 
-    
+    if len(test_loader) == 0:
+        print('No testing data supplied! Please indicate a directory containing generated NGS vectors in .npy format.')
+        return
+        
     with torch.no_grad():
         for batch_idx, (data, label, locations, sample_id) in enumerate(test_loader):
             bag_label = label
