@@ -59,12 +59,16 @@ if args.cuda:
 print('Loading Training and Test Set\n')
 loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 
-train_loader = data_utils.DataLoader(MSIBags(args.train_location, True, True),
+# We set the number of repeats param in the loader to 1 for training and testing
+# by default. To enable repeatitions/augmentation (for downsampling) you can change
+# 1 back to the default of 10 as in evalute_sample.py, just keep in mind the 
+# two train/test methods below will need to be looped
+train_loader = data_utils.DataLoader(MSIBags(args.train_location, True, True, 1),
                                      batch_size=1,
                                      shuffle=True,
                                      **loader_kwargs)
 
-test_loader = data_utils.DataLoader(MSIBags(args.test_location, True, True),
+test_loader = data_utils.DataLoader(MSIBags(args.test_location, True, True, 1),
                                     batch_size=1,
                                     shuffle=False,
                                     **loader_kwargs)
@@ -82,7 +86,12 @@ def train(epoch):
     train_loss = 0.
     train_error = 0.
     for batch_idx, (data, label, locations, sample_id) in enumerate(train_loader):
-        bag_label = label
+        bag_label = torch.tensor(int(label[0]))
+
+        # we're not doing the 10x repeats by default, but this could 
+        # be modified to handle that by looping this section for
+        # every repeat
+        data = data[0]  
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
         data, bag_label = Variable(data), Variable(bag_label)
@@ -131,7 +140,10 @@ def test():
         
     with torch.no_grad():
         for batch_idx, (data, label, locations, sample_id) in enumerate(test_loader):
-            bag_label = label
+            bag_label = torch.tensor(int(label[0]))
+            
+            data = data[0] # again, because we're only doing one run
+
             if args.cuda:
                 data, bag_label = data.cuda(), bag_label.cuda()
             data, bag_label = Variable(data), Variable(bag_label)

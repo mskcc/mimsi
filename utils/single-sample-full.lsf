@@ -8,4 +8,4 @@
 module load python/2.7.14
 source {/path/to/your/virtualenv}
 export PYTHONPATH=$PYTHONPATH:{deployment_location}/mimsi/:{deployment_location}/mimsi/data:{deployment_location}/mimsi/model
-python analyze.py --tumor-bam {/path/to/tumor.bam} --normal-bam {/path/to/normal.bam} --case-id my_unique_case --microsatellites-list {/path/to/microsatellites_file} --save-location {/path/to/save/vectors} --model ./model/mimsi_mskcc_impact.model > single_case_analysis.out
+python analyze.py --tumor-bam {/path/to/tumor.bam} --normal-bam {/path/to/normal.bam} --case-id my_unique_case --microsatellites-list {/path/to/microsatellites_file} --save-location {/path/to/save/vectors} --model ./model/mimsi_mskcc_impact_200.model > single_case_analysis.out
