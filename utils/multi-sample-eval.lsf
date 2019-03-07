@@ -7,6 +7,6 @@
 
 module load python/2.7.14
 source {/path/to/your/virtualenv}
-cd {deployment_location}/mimsi/main
+cd {deployment_location}/mimsi
 export PYTHONPATH=$PYTHONPATH:{deployment_location}/mimsi/:{deployment_location}/mimsi/data:{deployment_location}/mimsi/model
-python evaluate_sample.py --saved-model {deployment_location}/mimsi/model/mimsi_mskcc_impact.model  --vector-location {/path/to/vectors} > eval_results.out
+python -m main.evaluate_sample --saved-model {deployment_location}/mimsi/model/mimsi_mskcc_impact_200.model  --vector-location {/path/to/vectors} > eval_results.out

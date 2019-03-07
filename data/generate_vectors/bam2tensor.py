@@ -40,6 +40,10 @@ class Bam2Tensor(object):
         row_counter = 0
         try:
             for read in read_iterator:
+                #skip the read if it doesn't totally overlap the region
+                if(read.reference_start > self.start or read.reference_end < self.end):
+                    continue
+
                 # get the cigar tuples and covert to a list of cigar values
                 cigar_tuples = read.cigartuples
                 cigar_vals_for_read = []
@@ -50,9 +54,6 @@ class Bam2Tensor(object):
                     temp = [cigar_tuple[0]]*cigar_tuple[1]
                     cigar_vals_for_read += temp
 
-                #skip the read if it doesn't totally overlap the region
-                if(read.reference_start > self.start or read.reference_end < self.end):
-                    continue
 
                 cigar_vals_for_read = np.array(cigar_vals_for_read)
                 
@@ -93,9 +94,7 @@ class Bam2Tensor(object):
         if row_counter < required_coverage:
             return None
 
-        # randomly sample to the required coverage
-        downsampled = result_array[np.random.choice(result_array.shape[0], required_coverage), :, :]
-        return downsampled
+        return result_array
 
     def createTensor(self):
 
@@ -109,5 +108,5 @@ class Bam2Tensor(object):
         if tumor_result is None or normal_result is None:
             return None
 
-        return np.concatenate((tumor_result, normal_result), axis=0)
+        return (tumor_result, normal_result)
         

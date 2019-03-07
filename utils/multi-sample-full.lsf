@@ -8,4 +8,4 @@
 module load python/2.7.14
 source {/path/to/your/virtualenv}
 export PYTHONPATH=$PYTHONPATH:{deployment_location}/mimsi/:{deployment_location}/mimsi/data:{deployment_location}/mimsi/model
-python analyze.py --case-list {/path/to/case_list.txt} --microsatellites-list {/path/to/microsatellites_file} --save-location {/path/to/save/vectors} --model ./model/mimsi_mskcc_impact.model > multi_case_analysis.out
+python -m analyze --case-list {/path/to/case_list.txt} --microsatellites-list {/path/to/microsatellites_file} --save-location {/path/to/save/vectors} --model ./model/mimsi_mskcc_impact_200.model > multi_case_analysis.out
