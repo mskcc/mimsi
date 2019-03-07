@@ -23,11 +23,13 @@ from sklearn.preprocessing import normalize
 from torchvision import transforms
 
 class MSIBags(Dataset):
-    def __init__(self, root_dir, include_locations=True, labeled=True):
+    def __init__(self, root_dir, coverage=100, include_locations=True, labeled=True, num_repeats=10):
         self.root_dir = root_dir
         self.file_list = os.listdir(root_dir)
         self.is_labeled = labeled
+        self.coverage = coverage
         self.include_locations = include_locations
+        self.num_repeats = num_repeats
         self.data_file_list = [x for x in self.file_list if "data" in x] #parse out only samples
 
         self.loc_file_list = []
@@ -60,33 +62,54 @@ class MSIBags(Dataset):
         return sample_id, label
 
 
+    def _preprocess(self, np_from_disk):
+        bag_repeats = []
+        for i in range(self.num_repeats):
+            bag = []
+            for tumor_normal_microsatellite in np_from_disk:
+                tumor = tumor_normal_microsatellite[0]
+                normal = tumor_normal_microsatellite[1]
+            
+                # downsample to the required coverage
+                downsampled_t = tumor[np.random.choice(tumor.shape[0], self.coverage), :, :]
+                downsampled_n = normal[np.random.choice(normal.shape[0], self.coverage), :, :]
+
+                bag.append(np.concatenate((downsampled_t, downsampled_n), axis=0))
+
+            bag_repeats.append(bag) #List (length N) of lists, each list is of len 10 (10 copies of each vector)
+        
+        return bag_repeats # Return 10 X (N x (200 x L x 3)0
+         
 
     def __getitem__(self, idx):
         data_file = os.path.join(self.root_dir, self.data_file_list[idx])
         loc_file = os.path.join(self.root_dir, self.data_file_list[idx]).replace("data", "locations")
         
         sample_id, label = self.__parsefilename__(self.data_file_list[idx])
+        final_bags = []
+        bags = self._preprocess(np.load(data_file))
+        for bag in bags:
+            
+            bag = [np.concatenate((entry,np.zeros((self.coverage*2,40-entry.shape[1],3))), axis=1) for entry in bag]
+            bag = np.array(bag)
 
-        bag = np.load(data_file)
-        bag = [np.concatenate((entry,np.zeros((100,40-entry.shape[1],3))), axis=1) for entry in bag]
-        bag = np.array(bag)
+            bag_mean = bag.mean(axis=(0, 1, 2), keepdims=True)
+            bag_std = bag.std(axis=(0, 1, 2), keepdims=True)
         
-        bag_mean = bag.mean(axis=(0, 1, 2), keepdims=True)
-        bag_std = bag.std(axis=(0, 1, 2), keepdims=True)
+            # Normalize bag
+            bag = (bag - bag_mean)/(bag_std)
         
-        # Normalize bag
-        bag = (bag - bag_mean)/(bag_std)
-        
-        # Setup bag into Torch Tensor-Style Dimensions
-        bag = np.swapaxes(bag, 2, 3)
-        bag = np.swapaxes(bag, 1, 2)
-        bag = torch.from_numpy(bag).float()
+            # Setup bag into Torch Tensor-Style Dimensions
+            bag = np.swapaxes(bag, 2, 3)
+            bag = np.swapaxes(bag, 1, 2)
+            bag = torch.from_numpy(bag).float()
+            final_bags.append(bag)
 
         if self.include_locations:
             locations = np.load(loc_file)
-            return bag, label, locations, sample_id
+            return final_bags, label, locations, sample_id
 
-        return bag, label, 0, sample_id
+        return final_bags, label, 0, sample_id
 
 
 if __name__ == "__main__":

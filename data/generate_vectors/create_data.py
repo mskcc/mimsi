@@ -90,7 +90,7 @@ def process_wrapper(bam_filename, norm_filename, chunkStart, chunkSize, covg):
     Here we use it to break up the microsatellites list so that we can 
     generate many different microsatellite vectors in parallel.
 '''
-def chunkify(fname, size=1024*1024):
+def chunkify(fname, size=10*1024*1024):
     fileEnd = os.path.getsize(fname)
     with open(fname,'r') as f:
         chunkEnd = f.tell()
@@ -122,8 +122,6 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
 
     pool = mp.Pool(int(cores))
     jobs = []
-
-    print("creating jobs")
 
     try:
         #create jobs
@@ -165,9 +163,7 @@ def save_bag(sample, label, data, locations, save_location):
         print('Sample %s did not have any microsatellites above the required threshold level. \n', sample)
         return
 
-    # zero pad all sites to the length of the longest microsatellite found
-    max_cols = np.max([elem.shape[1] for elem in data])
-    data = [np.concatenate((entry,np.zeros((100,max_cols-entry.shape[1],3))), axis=1) for entry in data]
+    # convert to numpy to save to disk
     data = np.array(data)
 
     # save the instance to disk as it's generated, this is very important when 

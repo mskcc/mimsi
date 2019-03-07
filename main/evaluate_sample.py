@@ -24,8 +24,8 @@ import torch.optim as optim
 from torch.autograd import Variable
 from sklearn import metrics
 
-from ..data.data_loader import MSIBags
-from ..model.mi_msi_model import MSIModel
+from data.data_loader import MSIBags
+from model.mi_msi_model import MSIModel
 
 def evaluate(model, eval_loader, cuda, save, name):
     model.eval()
@@ -37,20 +37,26 @@ def evaluate(model, eval_loader, cuda, save, name):
             # Since we're evaluating here we're just using a default label
             # of -1 and ignoring the loss
             bag_label = torch.tensor(int(label[0]))
-
             if cuda:
-                data, bag_label = data.cuda(), bag_label.cuda()
-            data, bag_label = Variable(data), Variable(bag_label)
+                bag_label = bag_label.cuda()
+                Variable(bag_label)
 
-            # Evaluate the sample
-            _, Y_prob, Y_hat = model.calculate_objective(data, bag_label)
+            repeat_results = []
+            for bag in data:
+                if cuda:
+                    bag = bag.cuda()
+                    bag = Variable(bag)
 
-            # Record the result as a probability 
-            Y_prob = Y_prob.item()
-            result = [sample_id[0], Y_prob]
-            result_list.append(result)
+                # Evaluate the sample
+                _, Y_prob, Y_hat = model.calculate_objective(bag, bag_label)
+
+                # Record the result as a probability 
+                Y_prob = Y_prob.item()
+                repeat_results.append(Y_prob)
+             
+            result_list.append([sample_id[0], repeat_results])
             
-            print(sample_id[0] + "\t" + str(Y_prob) + "\n")
+            print(sample_id[0] + "\t" + str(repeat_results) + "\n")
 
     if save:
         np.save('./' + name + '_results.npy', result_list)
@@ -66,7 +72,7 @@ def main(saved_model, vector_location, no_cuda, seed, save, name):
     print('Evaluating Samples, Lets go!!!')
     loader_kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
-    eval_loader = data_utils.DataLoader(MSIBags(vector_location, False, False),
+    eval_loader = data_utils.DataLoader(MSIBags(vector_location, 100, False, False),
                                                 batch_size=1,
                                                 shuffle=False,
                                                 **loader_kwargs)
