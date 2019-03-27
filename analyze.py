@@ -27,25 +27,27 @@ import torch.utils.data as data_utils
 import torch.optim as optim
 from torch.autograd import Variable
 from sklearn import metrics
+import traceback
 
-from .data.generate_vectors.create_data import main as create_data
-from .main.evaluate_sample import main as run_eval
+from data.generate_vectors.create_data import main as create_data
+from main.evaluate_sample import main as run_eval
 
 def main(case_list, tumor_bam, normal_bam, case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, name):
 
     try:
         # is_lbled is false since this is an evaluation pipeline, 50 is the coverage
-        create_data(case_list, tumor_bam, normal_bam, case_id, ms_list, save_loc, False, 50, cores)
+        create_data(case_list, tumor_bam, normal_bam, case_id, ms_list, save_loc, False, 100, cores)
     except Exception as e:
         print("There was an error generating the vectors: \n")
         print(e)
         return False
 
     try:
-        run_eval(saved_model, save_loc, no_cuda, seed, save, name)
+        run_eval(saved_model, save_loc, no_cuda, seed, save, name, 100)
     except Exception as e:
         print("There was an error while evaluating samples: \n")
-        print(e)
+        print(traceback.format_exc())
+
         return False
     
     return True

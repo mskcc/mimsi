@@ -88,6 +88,7 @@ class Bam2Tensor(object):
                 row_counter += 1
 
         except Exception as e:
+            print("Exception in creating vector...")
             print(e)
             return None
 

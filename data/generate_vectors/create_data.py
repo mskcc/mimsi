@@ -61,8 +61,8 @@ def process(line, bamfile, normalbamfile, covg):
     microsatellites successfully converted to a numpy vector and returns 
     it along with the location information of the loci
 '''
-def process_wrapper(bam_filename, norm_filename, chunkStart, chunkSize, covg):
-    with open(args.microsatellites_list,'r') as ms_list:
+def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, covg):
+    with open(m_list,'r') as ms_list:
         # only look at microsatellites assigned to this process (chunks)
         ms_list.seek(chunkStart)
         lines = ms_list.read(chunkSize).splitlines()
@@ -126,7 +126,7 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
     try:
         #create jobs
         for chunkStart,chunkSize in chunkify(m_list):
-            jobs.append( pool.apply_async(process_wrapper,(bamfile, norm_filename, chunkStart,chunkSize, covg)) )
+            jobs.append( pool.apply_async(process_wrapper,(bamfile, norm_filename, m_list, chunkStart,chunkSize, covg)) )
 
  
         #wait for all jobs to finish
@@ -135,12 +135,14 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
             if result is not None:
                 all_instances = all_instances + result[0]
                 all_locations = all_locations + result[1]
-    except Exception as e:
-        print("There was an exception")
-        print(traceback.format_exc())
  
-    #clean up
-    pool.close()
+        #clean up
+        pool.close()
+        pool.terminate()
+    except Exception as e:
+        print("There was an exception during parallel processing")
+        print(traceback.format_exc())
+
     return (all_instances, all_locations)
 
 

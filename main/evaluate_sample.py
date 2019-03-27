@@ -59,10 +59,13 @@ def evaluate(model, eval_loader, cuda, save, name):
             print(sample_id[0] + "\t" + str(repeat_results) + "\n")
 
     if save:
-        np.save('./' + name + '_results.npy', result_list)
+        if len(result_list) == 1:
+            np.save('./' + sample_id[0] + '_results.npy', repeat_results)
+        else:
+            np.save('./' + name + '_results.npy', result_list)
 
 
-def main(saved_model, vector_location, no_cuda, seed, save, name):
+def main(saved_model, vector_location, no_cuda, seed, save, name, coverage):
     cuda = not no_cuda and torch.cuda.is_available()
 
     torch.manual_seed(seed)
@@ -77,7 +80,7 @@ def main(saved_model, vector_location, no_cuda, seed, save, name):
                                                 shuffle=False,
                                                 **loader_kwargs)
     
-    model = MSIModel()
+    model = MSIModel(coverage)
     if cuda:
         model.cuda()
     
@@ -93,6 +96,8 @@ if __name__ == "__main__":
     parser.add_argument('--save', default=False, action='store_true', help='save the results of the evaluation to a numpy array')
     parser.add_argument('--name', default="test_run_001", help='name of the run, this will be the filename for any saved results')
     parser.add_argument('--seed', type=int, default=2, metavar='S', help='Random Seed (default: 2)')
+    parser.add_argument('--coverage', default=50, help="Required coverage for both the tumor and the normal. Any coverage in excess of this limit will be randomly downsampled")
+
 
     args = parser.parse_args()
-    main(args.saved_model, args.vector_location, args.no_cuda, args.seed, args.save, args.name)
+    main(args.saved_model, args.vector_location, args.no_cuda, args.seed, args.save, args.name, args.coverage)
