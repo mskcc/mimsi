@@ -36,6 +36,7 @@ import traceback
     the vector and its location is returned to the wrapper function
 '''
 def process(line, bamfile, normalbamfile, covg):
+    line = line.decode('utf8').strip()
     vals = line.split('\t')
     if not vals[0].isdigit():
         return (None, None)
