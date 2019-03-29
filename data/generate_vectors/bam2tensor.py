@@ -16,7 +16,7 @@ either version 3 or later. See the LICENSE file for details
 import pysam
 import numpy as np
 from collections import deque
-
+import traceback
 
 class Bam2Tensor(object):
     chromosome = '1'
@@ -69,11 +69,11 @@ class Bam2Tensor(object):
                 cigar_end = len(cigar_vals_for_read) - max(0, read_end - self.end)
 
 
-                ref_locations = range(self.start, self.end)
+                ref_locations = list(range(self.start, self.end))
                 aligned_pairs = read.get_aligned_pairs()
-                aligned_cigar_pairs = filter(lambda x: x[1] in ref_locations, aligned_pairs)
+                aligned_cigar_pairs = [x for x in aligned_pairs if x[1] in ref_locations]
                 aligned_cigar_indicies = [x[0] for x in aligned_cigar_pairs]
-                aligned_cigar_indicies = map(lambda x: -1 if x is None else x, aligned_cigar_indicies)
+                aligned_cigar_indicies = [-1 if x is None else x for x in aligned_cigar_indicies]
 
                 aligned_cigar_indicies = np.array(aligned_cigar_indicies)
                 cigar_vals_to_fill = cigar_vals_for_read[aligned_cigar_indicies]
@@ -89,7 +89,7 @@ class Bam2Tensor(object):
 
         except Exception as e:
             print("Exception in creating vector...")
-            print(e)
+            print(traceback.format_exc())
             return None
 
         if row_counter < required_coverage:

@@ -36,7 +36,7 @@ import traceback
     the vector and its location is returned to the wrapper function
 '''
 def process(line, bamfile, normalbamfile, covg):
-    line = line.decode('utf8').strip()
+    #line = line.decode('utf8').strip()
     vals = line.split('\t')
     if not vals[0].isdigit():
         return (None, None)
@@ -63,7 +63,7 @@ def process(line, bamfile, normalbamfile, covg):
     it along with the location information of the loci
 '''
 def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, covg):
-    with open(m_list,'rb') as ms_list:
+    with open(m_list,'r') as ms_list:
         # only look at microsatellites assigned to this process (chunks)
         ms_list.seek(chunkStart)
         lines = ms_list.read(chunkSize).splitlines()
@@ -123,6 +123,7 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
 
     pool = mp.Pool(int(cores))
     jobs = []
+    
 
     try:
         #create jobs
@@ -210,7 +211,6 @@ def main(case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, 
                     # save to disk
                     save_bag(sample, label, data, locations, save_loc)
                     counter += 1
-                    print("Finished bam file number... " + str(counter))
                 
                 except Exception as e:
                     print(e)
