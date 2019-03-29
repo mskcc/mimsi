@@ -6,9 +6,7 @@ python:
 before_install:
     - sudo apt-get -y update
 install:
-    - pip --no-cache-dir install codecov --quiet 
     - pip --no-cache-dir install -r requirements.txt --quiet 
+    - pip --no-cache-dir install nose --quiet
 script:
-    - nosetests
-after_success:
-    - codecov
+    - make test

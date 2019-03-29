@@ -18,10 +18,11 @@ import torch.nn as nn
 
 
 class MSIModel(nn.Module):
-    def __init__(self):
+    def __init__(self, coverage=100):
         super(MSIModel, self).__init__()
         self.num_features = 512
         self.batch_size = 1
+        self.coverage = coverage
 
         #Input is N x (3 x 100 x 40)
         self.conv1 = nn.Sequential(
@@ -84,7 +85,7 @@ class MSIModel(nn.Module):
             layer
         '''
         self.feature_extractor_part2 = nn.Sequential(
-            nn.Linear(64 * 50 * 10, self.num_features),
+            nn.Linear(64 * int(self.coverage/2) * 10, self.num_features),
             nn.ReLU(),
             nn.Linear(self.num_features, self.num_features),
             nn.ReLU(),
@@ -142,7 +143,7 @@ class MSIModel(nn.Module):
         out_4_2 = out_4_2 + res6
         final_instance_embed = self.relu(out_4_2)
 
-        final_instance_embed = final_instance_embed.view(-1, 64 * 50 * 10)
+        final_instance_embed = final_instance_embed.view(-1, 64 * int(self.coverage/2) * 10)
         I = self.feature_extractor_part2(final_instance_embed)  # N x num_features     
 
         # S is the sample-level embedding, which is the aggregation (via mean) of 
