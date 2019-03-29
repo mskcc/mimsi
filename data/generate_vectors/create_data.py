@@ -62,7 +62,7 @@ def process(line, bamfile, normalbamfile, covg):
     it along with the location information of the loci
 '''
 def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, covg):
-    with open(m_list,'r') as ms_list:
+    with open(m_list,'rb') as ms_list:
         # only look at microsatellites assigned to this process (chunks)
         ms_list.seek(chunkStart)
         lines = ms_list.read(chunkSize).splitlines()
@@ -92,7 +92,7 @@ def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, 
 '''
 def chunkify(fname, size=10*1024*1024):
     fileEnd = os.path.getsize(fname)
-    with open(fname,'r') as f:
+    with open(fname,'rb') as f:
         chunkEnd = f.tell()
         while True:
             chunkStart = chunkEnd
