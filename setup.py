@@ -69,7 +69,7 @@ setup(
     ],
     packages=find_packages(exclude=['tests*']),
     py_modules=['analyze'],
-    python_requires='==2.7.*, ==3.5.*, ==3.6.*',
+    #python_requires='>=2.7, ==3.5*, ==3.6*',
     package_data={
         'utils': ['microsatellites.list.gz'],
         'model': ['*.model']
