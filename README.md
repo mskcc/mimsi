@@ -85,7 +85,7 @@ Running a batch of samples is extremely similar, just provide a case list file r
 
 ```
 cd /path/to/mimsi
-python -m analyze --tumor-bam --case-list /path/to/case_list.txt --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/vectors --model ./model/mimsi_mskcc_impact_200.model > single_case_analysis.out
+python -m analyze --tumor-bam --case-list /path/to/case_list.txt --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/vectors --model ./model/mimsi_mskcc_impact_200.model > batch_analysis.out
 ```
 The NGS vectors will be saved in ```save-location``` just as in the single case example. Again, as in the single case example all results are printed to standard out and can be saved to disk by setting the optional ```--save``` flag.
 
