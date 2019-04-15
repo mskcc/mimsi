@@ -66,6 +66,27 @@ def evaluate(model, eval_loader, cuda, save, name):
 
 
 def main(saved_model, vector_location, no_cuda, seed, save, name, coverage):
+    parser = argparse.ArgumentParser(
+        description='MiMSI Sample(s) Evalution Utility')
+    parser.add_argument('--no-cuda', action='store_true', default=False,
+                        help='Disables CUDA for use off GPU, if this is not specified the utility will check availability of torch.cuda')
+    parser.add_argument('--saved-model', default="mimsi_mskcc_impact.model",
+                        help='name of the saved model weights to load')
+    parser.add_argument('--vector-location', default="./eval",
+                        help='location of generated vectors to evaluate')
+    parser.add_argument('--save', default=False, action='store_true',
+                        help='save the results of the evaluation to a numpy array')
+    parser.add_argument('--name', default="test_run_001",
+                        help='name of the run, this will be the filename for any saved results')
+    parser.add_argument('--seed', type=int, default=2,
+                        metavar='S', help='Random Seed (default: 2)')
+    parser.add_argument('--coverage', default=50,
+                        help="Required coverage for both the tumor and the normal. \Any coverage in excess of this limit will be randomly downsampled")
+
+    args = parser.parse_args()
+
+    saved_model, vector_location, no_cuda, seed, save, name, coverage =
+    args.saved_model, args.vector_location, args.no_cuda, args.seed, args.save, args.name, args.coverage
     cuda = not no_cuda and torch.cuda.is_available()
 
     torch.manual_seed(seed)
@@ -76,28 +97,17 @@ def main(saved_model, vector_location, no_cuda, seed, save, name, coverage):
     loader_kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
     eval_loader = data_utils.DataLoader(MSIBags(vector_location, 100, False, False),
-                                                batch_size=1,
-                                                shuffle=False,
-                                                **loader_kwargs)
-    
+                                        batch_size=1,
+                                        shuffle=False,
+                                        **loader_kwargs)
+
     model = MSIModel(coverage)
     if cuda:
         model.cuda()
-    
+
     model.load_state_dict(torch.load(saved_model))
     evaluate(model, eval_loader, cuda, save, name)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='MiMSI Sample(s) Evalution Utility')
-    parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables CUDA for use off GPU, if this is not specified the utility will check availability of torch.cuda')
-    parser.add_argument('--saved-model', default="mimsi_mskcc_impact.model", help='name of the saved model weights to load')
-    parser.add_argument('--vector-location', default="./eval", help='location of generated vectors to evaluate')
-    parser.add_argument('--save', default=False, action='store_true', help='save the results of the evaluation to a numpy array')
-    parser.add_argument('--name', default="test_run_001", help='name of the run, this will be the filename for any saved results')
-    parser.add_argument('--seed', type=int, default=2, metavar='S', help='Random Seed (default: 2)')
-    parser.add_argument('--coverage', default=50, help="Required coverage for both the tumor and the normal. Any coverage in excess of this limit will be randomly downsampled")
-
-
-    args = parser.parse_args()
-    main(args.saved_model, args.vector_location, args.no_cuda, args.seed, args.save, args.name, args.coverage)
+    main()
