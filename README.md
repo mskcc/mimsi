@@ -37,7 +37,7 @@ cd mimsi #Root directory of the repository that includes the setup.py script.
 pip install .
 ```
 
-Following successfuly installation, the functions required to run MiMsi should be directly registered as command-line accessible tools in your environment,for convenience. You can either call the scripts/modules explicitly or as a command-line tools. Examples for both are provided below.
+Following successfuly installation, the functions required to run MiMsi should be directly registered as command-line accessible tools in your environment,for convenience. You can either call the scripts/modules explicitly or as command-line tools. Examples for both are provided below.
 
 ### Required Libraries
 
@@ -92,7 +92,7 @@ cd /path/to/mimsi
 python -m analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id ‘my-unique-case’ --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
 ```
 
-Or as command line tool:
+Or as command-line tool:
 
 ```
 analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id ‘my-unique-case’ --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
@@ -110,7 +110,7 @@ cd /path/to/mimsi
 python -m analyze --case-list /path/to/case_list.txt --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
 ```
 
-Or as command line tool
+Or as command-line tool
 
 ```
 analyze --case-list /path/to/case_list.txt --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
@@ -131,7 +131,7 @@ cd /path/to/mimsi
 python -m data.generate_vectors.create_data --case-list /path/to/case_list.txt --cores 16  --microsatellites-list /path/to/microsatellites_list.txt --save-location /path/to/save/vectors --coverage 100 --is-labeled 1 > generate_vector.out
 ```
 
-Or as command line tool
+Or as command-line tool
 ```
 create_data --case-list /path/to/case_list.txt --cores 16  --microsatellites-list /path/to/microsatellites_list.txt --save-location /path/to/save --coverage 100 --is-labeled 1 > generate_vector.out
 ```
@@ -147,7 +147,7 @@ cd /path/to/mimsi
 python -m main.evaluate_sample --saved-model ./model/mimsi_mskcc_impact_200.model --vector-location /path/to/generated/vectors --save --name "eval_sample" > output_log.txt
 ```
 
-Or as command line tool
+Or as command-line tool
 ```
 evaluate_sample --saved-model ./model/mimsi_mskcc_impact_200.model --vector-location /path/to/generated/vectors --save --name "eval_sample" > output_log.txt
 ```
@@ -162,7 +162,7 @@ cd /path/to/mimsi
 python -m main.mi_msi_train_test --name 'model_name' --train-location /path/to/train/vectors/ --test-location /path/to/train/vectors/  --save 1 > train_test.log
 ```
 
-Or as command line tool
+Or as command-line tool
 ```
 mi_msi_train_test --name 'model_name' --train-location /path/to/train/vectors/ --test-location /path/to/train/vectors/  --save 1 > train_test.log
 ```
