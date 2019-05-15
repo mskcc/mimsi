@@ -15,13 +15,29 @@ Current methods that determine MSI status using sequencing data compare the dist
 ### Setup & Install
 
 The source code and prebuilt model can be obtained by cloning this repo onto your local environment.
+NOTE: You need git-lfs in order to clone a copy of the microsatellites.list.gz included in this repo. Follow the instructions below and also refer to https://git-lfs.github.com for more information.
 
+Clone the repository.
 ```
 git clone https://github.com/mskcc/mimsi.git
 cd mimsi
+```
+
+If you wish to use the microsatellites data provided in this repository, you need git lfs. Download and install git lfs using git command line extension (https://git-lfs.github.com). You will need to run this in your repository directory once.
+```
+git lfs install --local --skip-smudge
+git lfs pull --include=microsatellites.list.gz
+cd ./utils
+gunzip microsatellites.list.gz
+```
+
+Install
+```
+cd mimsi #Root directory of the repository that includes the setup.py script.
 pip install .
 ```
-Following successfuly installation, the functions required to run MiMsi should be directly registered as command-line accessible tools in your environment,for convenience.
+
+Following successfuly installation, the functions required to run MiMsi should be directly registered as command-line accessible tools in your environment,for convenience. You can either call the scripts/modules explicitly or as a command-line tools. Examples for both are provided below.
 
 ### Required Libraries
 
