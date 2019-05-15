@@ -1,4 +1,4 @@
-'''
+"""
 MiMSI Vector Generation Utility
 
 Used to create vectors utilized by the MiMSI model during training and evaluation of MSI status in 
@@ -15,33 +15,36 @@ zieglerj@mskcc.org
 and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, 
 either version 3 or later. See the LICENSE file for details
 
-'''
+"""
 
 import argparse
 import numpy as np
 import multiprocessing as mp
 import os
+import sys
 import warnings
 import pysam
-from bam2tensor import Bam2Tensor
 import traceback
-import pkg_resources
+from glob import glob
+
+from bam2tensor import Bam2Tensor
+
 
 # Global variables
-#M_LIST = pkg_resources.resource_filename()
-#MODEL = pkg_resources.resource_filename()
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 def process(line, bamfile, normalbamfile, covg):
-    '''
+    """
     Process is the most granular conversion function. It converts a single 
     microsatellite into a 100 x L x 3 vector, where 100 is the downsampled
     coverage configured in Bam2Tensor. If the microsatellite does not meet
     the required thresholds for length, repeat unit length, number of repeats
     or coverage (None, None) is returned. Otherwise a tuple containing 
     the vector and its location is returned to the wrapper function
-    '''
-    #line = line.decode('utf8').strip()
-    vals = line.split('\t')
+    """
+    # line = line.decode('utf8').strip()
+    vals = line.split("\t")
     if not vals[0].isdigit():
         return (None, None)
 
@@ -53,23 +56,24 @@ def process(line, bamfile, normalbamfile, covg):
 
     chrom = vals[0]
     start = int(vals[1])
-    end = start + int(vals[2])*int(vals[4])
+    end = start + int(vals[2]) * int(vals[4])
     total_len = end - start
     if total_len < 5 or total_len > 40:
         return (None, None)
-    tumor_test = Bam2Tensor(bamfile, normalbamfile, str(
-        chrom), int(start), int(end), covg)
+    tumor_test = Bam2Tensor(
+        bamfile, normalbamfile, str(chrom), int(start), int(end), covg
+    )
     return (tumor_test.createTensor(), [str(chrom), int(start), int(end)])
 
 
 def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, covg):
-    '''
+    """
     This is a wrapper function that executes "process" above for a given
     chunk of the microsatellites list. It compiles a list of all the 
     microsatellites successfully converted to a numpy vector and returns 
     it along with the location information of the loci
-    '''
-    with open(m_list, 'r') as ms_list:
+    """
+    with open(m_list, "r") as ms_list:
         # only look at microsatellites assigned to this process (chunks)
         ms_list.seek(chunkStart)
         lines = ms_list.read(chunkSize).splitlines()
@@ -81,8 +85,8 @@ def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, 
             # return empty
             return (results, locations)
 
-        bamfile = pysam.AlignmentFile(bam_filename, 'rb')
-        normalbamfile = pysam.AlignmentFile(norm_filename, 'rb')
+        bamfile = pysam.AlignmentFile(bam_filename, "rb")
+        normalbamfile = pysam.AlignmentFile(norm_filename, "rb")
 
         for line in lines:
             result, loc = process(line, bamfile, normalbamfile, covg)
@@ -93,14 +97,14 @@ def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, 
         return (results, locations)
 
 
-def chunkify(fname, size=10*1024*1024):
-    '''
+def chunkify(fname, size=10 * 1024 * 1024):
+    """
     Generic helper method to break up a file into many smaller chunks,
     Here we use it to break up the microsatellites list so that we can
     generate many different microsatellite vectors in parallel.
-    '''
+    """
     fileEnd = os.path.getsize(fname)
-    with open(fname, 'rb') as f:
+    with open(fname, "rb") as f:
         chunkEnd = f.tell()
         while True:
             chunkStart = chunkEnd
@@ -113,7 +117,7 @@ def chunkify(fname, size=10*1024*1024):
 
 
 def convert_bam(bamfile, norm_filename, m_list, covg, cores):
-    '''
+    """
     This is the top level function that converts an entire tumor/normal pair of bam files 
     into a vector collection that MiMSI will utilize in subsequent steps. It is setup to run
     in a parallel processing environment, with cores specified as a command line arg in main
@@ -125,7 +129,7 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
         3. wait for all chunks to complete
         4. combine the results of each chunk
         5. close and return the combined results
-    '''
+    """
     all_instances = []
     all_locations = []
 
@@ -133,31 +137,33 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
     jobs = []
 
     try:
-        #create jobs
+        # create jobs
         for chunkStart, chunkSize in chunkify(m_list):
-            jobs.append(pool.apply_async(process_wrapper, (bamfile,
-                                                           norm_filename, m_list, chunkStart, chunkSize, covg)))
-
-        #wait for all jobs to finish
+            jobs.append(
+                pool.apply_async(
+                    process_wrapper,
+                    (bamfile, norm_filename, m_list, chunkStart, chunkSize, covg),
+                )
+            )
+        # wait for all jobs to finish
         for job in jobs:
-            print job
             result = job.get()
             if result is not None:
                 all_instances = all_instances + result[0]
                 all_locations = all_locations + result[1]
 
-        #clean up
+        # clean up
         pool.close()
         pool.terminate()
     except Exception as e:
-        print("There was an exception during parallel processing")
-        print(traceback.format_exc())
+        print("There was an exception during parallel processing.")
+        raise
 
     return (all_instances, all_locations)
 
 
-def save_bag(sample, label, data, locations, save_location):
-    ''' 
+def save_bag(sample, label, data, locations, save_loc):
+    """ 
     Save the final collection of microsatellite instances to disk to be used
     in later stages of MiMSI. Saves each sample in the following manner:
 
@@ -168,10 +174,13 @@ def save_bag(sample, label, data, locations, save_location):
     as the data loader will parse the underscore deliminated filename to determine
     the sample id and the label. Sample id does need to be unique.
 
-    '''
+    """
     # if no instances that met the coverage threshold were found, return
     if len(data) == 0:
-        print('Sample %s did not have any microsatellites above the required threshold level. \n', sample)
+        print(
+            "Sample %s did not have any microsatellites above the required threshold level. \n",
+            sample,
+        )
         return
 
     # convert to numpy to save to disk
@@ -180,44 +189,41 @@ def save_bag(sample, label, data, locations, save_location):
     # save the instance to disk as it's generated, this is very important when
     # generating a large number of samples, otherwise everything will explode when you try
     # to keep storing all your samples in memory
-    file_name = save_location + '/' + sample + "_" + str(label) + "_" + "data"
-    loc_file_name = save_location + '/' + sample + \
-        "_" + str(label) + "_" + "locations"
+
+    file_name = save_loc + "/" + sample + "_" + str(label) + "_" + "data"
+    loc_file_name = save_loc + "/" + sample + "_" + str(label) + "_" + "locations"
     np.save(file_name, data)
     np.save(loc_file_name, locations)
 
 
-def main(case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, covg, cores):
-    parser = argparse.ArgumentParser(description='MiMSI Vector Generation Utility')
-    parser.add_argument('--case-list', default="",
-                        help='Case List for generating sample vectors in bulk, if specified all other input file args will be ignored')
-    parser.add_argument('--tumor-bam', default="test-001-Tumor.bam",
-                        help='Tumor bam file for conversion')
-    parser.add_argument('--normal-bam', default="test-001-Normal.bam",
-                        help='Matched normal bam file for conversion')
-    parser.add_argument('--case-id', default="test-001",
-                        help='Unique identifier for the sample/case')
-    parser.add_argument('--microsatellites-list', default="./microsatellites.list",
-                        help='The list of microsatellites to check in the tumor/normal pair')
-    parser.add_argument('--save-location', default="../generated_samples",
-                        help='The location on the filesystem to save the converted vectors')
-    parser.add_argument('--is-labeled', default=False,
-                        help="Indicated whether or not the data provided is labeled")
-    parser.add_argument('--coverage', default=50,
-                        help="Required coverage for both the tumor and the normal. Any coverage in excess of this limit will be randomly downsampled")
-    parser.add_argument('--cores', default=16,
-                        help="Number of cores to utilize in parallel")
+def create_data(
+    case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, covg, cores
+):
+    print("Generating Vectors...")
 
-    args = parser.parse_args()
+    # create save directory, if one doesn't already exist
+    try:
+        os.mkdir(save_loc)
+    except OSError as e:
+        if e.errno != os.errno.EEXIST:
+            print("Exception when creating directory to store numpy array.")
+            raise
 
-    case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, covg, cores =
-    args.case_list, args.tumor_bam, args.normal_bam, args.case_id, args.microsatellites_list, 
-    args.save_location, args.is_labeled, args.coverage, args.cores
+    # remove exisiting data and locations npy arrays in the save_loc directory
+    npy_files = glob(save_loc + "/*_locations.npy") + glob(save_loc + "/*_data.npy")
+    if len(npy_files) > 0:
+        try:
+            for npy_file in npy_files:
+                os.remove(npy_file)
+        except OSError as e:
+            if e.errno != errno.ENOENT:  # no such file or directory
+                raise
 
     # If a file is given use that to generate our data
     if case_list is not None and case_list != "":
+        sample_list = []
 
-        with open(case_list, 'r') as f:
+        with open(case_list, "r") as f:
             lines = f.read().splitlines()
             N = len(lines)
             data = []
@@ -229,6 +235,14 @@ def main(case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, 
                 # Get all of our values
                 vals = line.split("\t")
                 sample = vals[0]
+                # Check for duplicate sampleID entries
+                if sample in sample_list:
+                    raise Exception(
+                        "Duplicate entires detected for sampleID {}".format(
+                            sample_id[0]
+                        )
+                    )
+                sample_list.append(sample)
                 bam_file = vals[1]
                 norm_file = vals[2]
                 label = -1
@@ -237,11 +251,10 @@ def main(case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, 
 
                 try:
                     # convert
-                    result = convert_bam(
-                        bam_file, norm_file, m_list, covg, cores)
+                    result = convert_bam(bam_file, norm_file, m_list, covg, cores)
 
                     data = result[0]  # the converted vector
-                    locations = np.array(result[1])  # the location utilized
+                    locations = np.array(result[1])  # the locations utilized
 
                     # save to disk
                     save_bag(sample, label, data, locations, save_loc)
@@ -254,13 +267,90 @@ def main(case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, 
 
     # Otherwise we are just going to convert the given sample
     else:
-
         result = convert_bam(tumor_bam, normal_bam, m_list, covg, cores)
         data = result[0]  # the converted vector
         locations = np.array(result[1])  # the location utilized
 
         # save to disk
         save_bag(case_id, -1, data, locations, save_loc)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="MiMSI Vector Generation Utility")
+
+    single_sample_group = parser.add_argument_group("Single Sample Mode")
+    single_sample_group.add_argument(
+        "--tumor-bam", help="Tumor bam file for conversion"
+    )
+    single_sample_group.add_argument(
+        "--normal-bam", help="Matched normal bam file for conversion"
+    )
+    single_sample_group.add_argument(
+        "--case-id",
+        default="TestCase",
+        help="Unique identifier for the single sample/case submitted. This will be the filename for any saved results (default: TestCase)",
+    )
+
+    batch_mode_group = parser.add_argument_group("Batch Mode")
+    batch_mode_group.add_argument(
+        "--case-list",
+        default="",
+        help="Case List for generating sample vectors in bulk, if specified all other input file args will be ignored",
+    )
+    batch_mode_group.add_argument(
+        "--name",
+        default="BATCH",
+        help="name of the run submitted using --case-list, this will be the filename for any saved results in the tsv format (default: BATCH)",
+    )
+    batch_mode_group.add_argument(
+        "--is-labeled",
+        default=False,
+        help="Indicated whether or not the data provided in the case-list file is labeled",
+    )
+
+    parser.add_argument(
+        "--microsatellites-list",
+        default=ROOT_DIR + "/../../utils/microsatellites.list",
+        help="The list of microsatellites to check in the tumor/normal pair (default: utils/microsatellites.list)",
+    )
+    parser.add_argument(
+        "--save-location",
+        default="./generated_samples",
+        help="The location on the filesystem to save the converted vectors (default: Current_working_directory/generated_samples/). WARNING: Exisitng files in this directory in the formats *_locations.npy and *_data.npy will be deleted!",
+    )
+    parser.add_argument(
+        "--coverage",
+        default=100,
+        help="Required coverage for both the tumor and the normal. Any coverage in excess of this limit will be randomly downsampled",
+    )
+    parser.add_argument(
+        "--cores", default=16, help="Number of cores to utilize in parallel"
+    )
+
+    args = parser.parse_args()
+    case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, covg, cores = (
+        args.case_list,
+        args.tumor_bam,
+        args.normal_bam,
+        args.case_id,
+        args.microsatellites_list,
+        args.save_location,
+        args.is_labeled,
+        args.coverage,
+        args.cores,
+    )
+
+    create_data(
+        case_list,
+        tumor_bam,
+        normal_bam,
+        case_id,
+        m_list,
+        save_loc,
+        is_lbled,
+        covg,
+        cores,
+    )
 
 
 if __name__ == "__main__":
