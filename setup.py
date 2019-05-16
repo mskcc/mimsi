@@ -18,7 +18,14 @@ def most_recent_tag():
     """
     Get the most recent tag for the repo.
     """
-    return str(check_output(["git", "describe", "--tags"]).decode('utf8').strip().split("-").pop(0))
+    return (
+        check_output(["git", "describe", "--tags"])
+        .decode("utf-8")
+        .strip()
+        .split("-")
+        .pop(0)
+    )
+
 
 setup(
     name="MiMSI",
