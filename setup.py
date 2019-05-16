@@ -1,6 +1,6 @@
 import os
 import sys
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 from subprocess import check_output
 
 
@@ -18,7 +18,7 @@ def most_recent_tag():
     """
     Get the most recent tag for the repo.
     """
-    return check_output(["git", "describe", "--tags"]).strip().split("-").pop(0)
+    return check_output(["git", "describe", "--tags"]).decode('utf-8').strip().split("-").pop(0)
 
 
 setup(
@@ -34,7 +34,7 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Programming Language :: Python :: 2.7",
     ],
-    packages=find_packages(exclude=["tests*"]),
+    packages=find_namespace_packages(exclude=["tests*"]),
     py_modules=["analyze"],
     python_requires=">=2.7",
     package_data={"utils": ["microsatellites.list"], "model": ["*.model"]},
