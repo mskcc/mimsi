@@ -53,13 +53,13 @@ def main():
         "--save",
         action="store_true",
         default=False,
-        help="save the results of the evaluation to a numpy array or a tsv file instead of printing to stdout",
+        help="save the results of the evaluation to a numpy array or a tsv text file",
     )
     parser.add_argument(
         "--save-format",
         choices=["tsv", "npy", "both"],
         default="tsv",
-        help="save the results of the evaluation to a numpy array or as summary in a tsv file or both",
+        help="save the results of the evaluation to a numpy array or as summary in a tsv text file or both",
     )
     parser.add_argument(
         "--seed", type=int, default=2, metavar="S", help="Random Seed (default: 2)"
@@ -71,8 +71,8 @@ def main():
     )
     parser.add_argument(
         "--save-location",
-        default="./generated_samples",
-        help="The location on the filesystem to save the converted vectors and final results (default: Current_working_directory/generated_samples/). WARNING: Exisitng files in this directory in the formats *_locations.npy and *_data.npy will be deleted!",
+        default="./mimsi_results",
+        help="The location on the filesystem to save the converted vectors and final results (default: Current_working_directory/mimsi_results/). WARNING: Exisitng files in this directory in the formats *_locations.npy and *_data.npy will be deleted!",
     )
     parser.add_argument(
         "--cores",
@@ -117,7 +117,7 @@ def main():
     batch_mode_group.add_argument(
         "--is-labeled",
         default=False,
-        help="Indicated whether or not the data provided in the case-list file is labeled",
+        help="Indicates whether or not the data provided in the case-list file is labeled",
     )
 
     args = parser.parse_args()
@@ -152,11 +152,13 @@ def main():
         )
         return
 
-    if save_loc == "./generated_samples":
+    if save_loc == "./mimsi_results":
         try:
-            save_loc = os.getcwd() + "/generated_samples"
+            save_loc = os.getcwd() + "/mimsi_results"
         except OSError as e:
-            print("Cannot create directory to save intermediate files and results!")
+            print(
+                "Cannot create directory to save intermediate files and final results!"
+            )
             print(traceback.format_exc())
             return False
 
@@ -178,8 +180,6 @@ def main():
         return False
 
     try:
-        # if not case_list:
-        #    save_loc = "/".join([save_loc, case_id])
         run_eval(
             saved_model,
             save_loc,

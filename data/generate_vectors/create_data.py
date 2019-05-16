@@ -45,14 +45,23 @@ def process(line, bamfile, normalbamfile, covg):
     """
     # line = line.decode('utf8').strip()
     vals = line.split("\t")
-    if not vals[0].isdigit():
+    if any(
+        [
+            not vals[0].isdigit(),
+            int(vals[2]) == 1 and int(vals[4]) < 10,
+            int(vals[2]) < 5 and int(vals[4]) < 5,
+        ]
+    ):
         return (None, None)
 
-    if int(vals[2]) == 1 and int(vals[4]) < 10:
-        return (None, None)
+    # if not vals[0].isdigit():
+    #     return (None, None)
 
-    if int(vals[2]) < 5 and int(vals[4]) < 5:
-        return (None, None)
+    # if int(vals[2]) == 1 and int(vals[4]) < 10:
+    #     return (None, None)
+
+    # if int(vals[2]) < 5 and int(vals[4]) < 5:
+    #     return (None, None)
 
     chrom = vals[0]
     start = int(vals[1])
@@ -305,7 +314,7 @@ def main():
     batch_mode_group.add_argument(
         "--is-labeled",
         default=False,
-        help="Indicated whether or not the data provided in the case-list file is labeled",
+        help="Indicates whether or not the data provided in the case-list file is labeled",
     )
 
     parser.add_argument(

@@ -105,7 +105,7 @@ def evaluate(model, eval_loader, cuda, save, save_format, save_loc, name, confid
 
 def nparray_stats(nparray, confidence):
     """
-    calculate summary stats to report MSI
+    calculate and report summary stats for each numpy array/sample
     """
 
     def msi_status(msi_score):
@@ -144,6 +144,9 @@ def run_eval(
     coverage,
     confidence,
 ):
+    """
+    Main wrapper function to load the provided model and initiate evaluation
+    """
     torch.manual_seed(seed)
     if cuda:
         print("\nGPU is Enabled!")
@@ -186,18 +189,18 @@ def main():
         "--save",
         action="store_true",
         default=False,
-        help="save the results of the evaluation to a numpy array or a tsv file instead of printing to stdout",
+        help="save the results of the evaluation to a numpy array or a tsv text file",
     )
     parser.add_argument(
         "--save-format",
         choices=["tsv", "npy", "both"],
         default="tsv",
-        help="save the results of the evaluation to a numpy array or as summary in a tsv file or both",
+        help="save the results of the evaluation to a numpy array or as summary in a tsv text file or both",
     )
     parser.add_argument(
         "--save-location",
-        default="./generated_samples",
-        help="The location on the filesystem to save the converted vectors (default: Current_working_directory/generated_samples/). WARNING: Exisitng files in this directory in the formats *_locations.npy and *_data.npy will be deleted!",
+        default="./mimsi_results",
+        help="The location on the filesystem to save the final results (default: Current_working_directory/mimsi_results/).",
     )
     parser.add_argument(
         "--name",
@@ -233,11 +236,13 @@ def main():
         args.confidence_interval,
     )
     # Resolve args
-    if save_loc == "./generated_samples":
+    if save_loc == "./mimsi_results":
         try:
-            save_loc = os.getcwd() + "/generated_samples"
+            save_loc = os.getcwd() + "/mimsi_results"
         except OSError as e:
-            raise
+            print("Cannot create directory to save final results!")
+            print(traceback.format_exc())
+            return False
 
     cuda = not no_cuda and torch.cuda.is_available()
     run_eval(
