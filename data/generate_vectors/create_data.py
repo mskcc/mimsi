@@ -45,23 +45,15 @@ def process(line, bamfile, normalbamfile, covg):
     """
     # line = line.decode('utf8').strip()
     vals = line.split("\t")
-    if any(
-        [
-            not vals[0].isdigit(),
-            int(vals[2]) == 1 and int(vals[4]) < 10,
-            int(vals[2]) < 5 and int(vals[4]) < 5,
-        ]
-    ):
+
+    if not vals[0].isdigit():
         return (None, None)
 
-    # if not vals[0].isdigit():
-    #     return (None, None)
+    if int(vals[2]) == 1 and int(vals[4]) < 10:
+        return (None, None)
 
-    # if int(vals[2]) == 1 and int(vals[4]) < 10:
-    #     return (None, None)
-
-    # if int(vals[2]) < 5 and int(vals[4]) < 5:
-    #     return (None, None)
+    if int(vals[2]) < 5 and int(vals[4]) < 5:
+        return (None, None)
 
     chrom = vals[0]
     start = int(vals[1])
