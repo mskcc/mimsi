@@ -21,6 +21,7 @@ import argparse
 import numpy as np
 import multiprocessing as mp
 import os
+import errno
 import sys
 import warnings
 import pysam
