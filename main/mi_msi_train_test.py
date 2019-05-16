@@ -16,7 +16,6 @@ either version 3 or later. See the LICENSE file for details
 '''
 
 
-
 import numpy as np
 import os
 import sys
@@ -31,57 +30,39 @@ from sklearn import metrics
 from ..data.data_loader import MSIBags
 from ..model.mi_msi_model import MSIModel
 
-# Training settings
-parser = argparse.ArgumentParser(description='MiMSI - A Multiple Instance Learning Model for detecting microsatellite instability in NGS data')
-parser.add_argument('--epochs', type=int, default=40, metavar='N', help='Number of epochs to train (default: 40)')
-parser.add_argument('--lr', type=float, default=0.0001, metavar='LR', help='Learning rate used in training (default: 0.0001)')
-parser.add_argument('--reg', type=float, default=5e-4, metavar='R', help='Weight decay used in training (default: 5e-4)')
-parser.add_argument('--seed', type=int, default=2, metavar='S', help='Random Seed (default: 2)')
-parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables CUDA training for use off GPU, if this is not specified the utility will check availability of torch.cuda')
-parser.add_argument('--name', default="mi_msi_1", help='Name of the model, ')
-parser.add_argument('--train-location', default="./main", help='Directory Location for Training Data')
-parser.add_argument('--test-location', default="./main", help='Directory Location for Testing Data')
-parser.add_argument('--save', default=False, help='Save the model weights to disk after training')
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='MiMSI - A Multiple Instance Learning Model for detecting microsatellite instability in NGS data')
+    parser.add_argument('--epochs', type=int, default=40, metavar='N',
+                        help='Number of epochs to train (default: 40)')
+    parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
+                        help='Learning rate used in training (default: 0.0001)')
+    parser.add_argument('--reg', type=float, default=5e-4, metavar='R',
+                        help='Weight decay used in training (default: 5e-4)')
+    parser.add_argument('--seed', type=int, default=2,
+                        metavar='S', help='Random Seed (default: 2)')
+    parser.add_argument('--no-cuda', action='store_true', default=False,
+                        help='Disables CUDA training for use off GPU, if this is not specified the utility will check availability of torch.cuda')
+    parser.add_argument('--name', default="mi_msi_1",
+                        help='Name of the model, ')
+    parser.add_argument('--train-location', default="./main",
+                        help='Directory Location for Training Data')
+    parser.add_argument('--test-location', default="./main",
+                        help='Directory Location for Testing Data')
+    parser.add_argument('--save', default=False,
+                        help='Save the model weights to disk after training')
 
 
-args = parser.parse_args()
-args.cuda = not args.no_cuda and torch.cuda.is_available()
+    args = parser.parse_args()
+    # Training settings
+    epochs, lr, reg, seed, , name, train_location, test_location, save =
+    args.epochs, args.lr, args.reg, args.seed, args.name, args.train_location, args.test_location, args.save
+    cuda = not args.no_cuda and torch.cuda.is_available()
+    generate_model(seed, cuda, epochs, lr, reg, train_location, test_location)
 
 
-print('Lets Go!!!\n')
-
-torch.manual_seed(args.seed)
-
-if args.cuda:
-    torch.cuda.manual_seed(args.seed)
-    print('\nGPU is enabled!')
-
-print('Loading Training and Test Set\n')
-loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-
-# We set the number of repeats param in the loader to 1 for training and testing
-# by default. To enable repeatitions/augmentation (for downsampling) you can change
-# 1 back to the default of 10 as in evalute_sample.py, just keep in mind the 
-# two train/test methods below will need to be looped
-train_loader = data_utils.DataLoader(MSIBags(args.train_location, True, True, 1),
-                                     batch_size=1,
-                                     shuffle=True,
-                                     **loader_kwargs)
-
-test_loader = data_utils.DataLoader(MSIBags(args.test_location, True, True, 1),
-                                    batch_size=1,
-                                    shuffle=False,
-                                    **loader_kwargs)
-
-model = MSIModel()
-if args.cuda:
-    model.cuda()
-
-
-optimizer = optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.999), weight_decay=args.reg)
-
-
-def train(epoch):
+def train(epoch, model, optimizer, train_loader, cuda):
     model.train()
     train_loss = 0.
     train_error = 0.
@@ -91,8 +72,8 @@ def train(epoch):
         # we're not doing the 10x repeats by default, but this could 
         # be modified to handle that by looping this section for
         # every repeat
-        data = data[0]  
-        if args.cuda:
+        data = data[0]
+        if cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
         data, bag_label = Variable(data), Variable(bag_label)
 
@@ -119,7 +100,8 @@ def train(epoch):
     print('Epoch: {}, Loss: {:.4f}, Train error: {:.4f}'.format(epoch, train_loss, train_error))
     return train_loss, train_error
 
-def test():
+
+def test(test_loader, model, cuda):
     model.eval()
     test_loss = 0.
     test_error = 0.
@@ -144,7 +126,7 @@ def test():
             
             data = data[0] # again, because we're only doing one run
 
-            if args.cuda:
+            if cuda:
                 data, bag_label = data.cuda(), bag_label.cuda()
             data, bag_label = Variable(data), Variable(bag_label)
             
@@ -166,11 +148,11 @@ def test():
             elif error == 1. and Y_hat == 1.:
                 fp += 1
                 # save the incorrect cases for further analysis
-                incorrect.append((patient, Y_prob.item()))
+                incorrect.append((sample_id, Y_prob.item()))
             else:
                 fn += 1
                 # save the incorrect cases for further analysis
-                incorrect.append((patient, Y_prob.item()))
+                incorrect.append((sample_id, Y_prob.item()))
 
             test_error += error
 
@@ -180,10 +162,10 @@ def test():
 
     fpr, tpr, thresholds = metrics.roc_curve(labels, preds)
     auroc = metrics.auc(fpr, tpr)
-    if args.save:
-        np.save('./' + args.name + '_fpr.npy', fpr)
-        np.save('./' + args.name + '_tpr.npy', tpr)
-        np.save('./' + args.name + '_thres.npy', thresholds)
+    if save:
+        np.save('./' + name + '_fpr.npy', fpr)
+        np.save('./' + name + '_tpr.npy', tpr)
+        np.save('./' + name + '_thres.npy', thresholds)
     
     
     print('Incorrect cases (based on provided labels): \n')
@@ -193,10 +175,12 @@ def test():
     print('TP, FP, TN, FN: {:.4f},{:.4f},{:.4f},{:.4f}\n'.format(tp, fp, tn, fn))
     print('AUROC: {:.4f}\n'.format(auroc))
 
-if __name__ == "__main__":
+
+def generate_model(seed, cuda, epochs, lr, reg, train_location, test_location):
+    print('Lets Go!!!\n')
     train_loss_list = []
     train_error_list = []
-    
+
     # Checkpoint for our model so that we can save the best
     # performing model during training
     best_checkpoint = {
@@ -207,13 +191,46 @@ if __name__ == "__main__":
         'optimizer': {}
     }
 
+    torch.manual_seed(seed)
+    loader_kwargs = {}
+
+    if cuda:
+        torch.cuda.manual_seed(seed)
+        loader_kwargs = {'num_workers': 1, 'pin_memory': True}
+        print('\nGPU is enabled!')
+
+    print('Loading Training and Test Set\n')
+
+    # We set the number of repeats param in the loader to 1 for training and testing
+    # by default. To enable repeatitions/augmentation (for downsampling) you can change
+    # 1 back to the default of 10 as in evalute_sample.py, just keep in mind the
+    # two train/test methods below will need to be looped
+    train_loader = data_utils.DataLoader(MSIBags(train_location, True, True, 1),
+                                         batch_size=1,
+                                         shuffle=True,
+                                         **loader_kwargs)
+
+    test_loader = data_utils.DataLoader(MSIBags(test_location, True, True, 1),
+                                        batch_size=1,
+                                        shuffle=False,
+                                        **loader_kwargs)
+
     if len(train_loader) == 0:
         print('No training data supplied! Please indicate a directory containing generated NGS vectors in .npy format.')
-        sys.exit() 
+        sys.exit()
+
+    # initialize model class
+    model = MSIModel()
+
+    if cuda:
+        model.cuda()
+
+    optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999), weight_decay=reg)
 
     print('Training the Model... \n')
-    for epoch in range(1, args.epochs + 1):
-        train_loss, train_error = train(epoch)
+    for epoch in range(1, epochs + 1):
+        train_loss, train_error = train(
+            epoch, model, optimizer, train_loader, cuda)
         train_loss_list.append(train_loss)
         train_error_list.append(train_error)
 
@@ -227,20 +244,23 @@ if __name__ == "__main__":
                 'optimizer': optimizer.state_dict(),
             }
 
-    if args.save:
-        np.save('./' + args.name + '_trainerror.npy', train_error_list)
-        np.save('./' + args.name + '_trainloss.npy', train_loss_list)
+    if save:
+        np.save('./' + name + '_trainerror.npy', train_error_list)
+        np.save('./' + name + '_trainloss.npy', train_loss_list)
         train_loss_list = None
         train_error_list = None
-    
-    print('Training Complete... \n')
 
+    print('Training Complete... \n')
+    
+    # Load and test model
     print('Testing the Model... \n')
     model.load_state_dict(best_checkpoint['state_dict'])
+    test(test_loader, model, cuda)
 
-    test()
-
-    if args.save:
+    if save:
         model.cpu()
-        torch.save(model.state_dict(), './' + args.name + '.model')
+        torch.save(model.state_dict(), './' + name + '.model')
 
+
+if __name__ == "__main__":
+    main()
