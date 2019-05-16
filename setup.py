@@ -1,6 +1,6 @@
 import os
 import sys
-from setuptools import setup, find_namespace_packages
+from setuptools import setup, find_packages
 from subprocess import check_output
 
 
@@ -34,7 +34,7 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Programming Language :: Python :: 2.7",
     ],
-    packages=find_namespace_packages(exclude=["tests*"]),
+    packages=find_packages(exclude=["tests*"]),
     py_modules=["analyze"],
     python_requires=">=2.7",
     package_data={"utils": ["microsatellites.list"], "model": ["*.model"]},
