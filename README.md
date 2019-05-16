@@ -1,5 +1,7 @@
 # MiMSI
 
+[![Build Status](https://travis-ci.org/andurill/mimsi.png?branch=master)](https://travis-ci.org/jayakumg/mimsi)
+
 A deep, multiple instance learning based classifier for identifying Microsatellite Instability in Next-Generation Sequencing Results. 
 
 
