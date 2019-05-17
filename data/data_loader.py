@@ -39,13 +39,13 @@ class MSIBags(Dataset):
         self.include_locations = include_locations
         self.num_repeats = num_repeats
         self.data_file_list = [
-            x for x in self.file_list if "data" in x
+            x for x in self.file_list if x.endswith("_data.npy")
         ]  # parse out only samples
 
         self.loc_file_list = []
         if self.include_locations:
             self.loc_file_list = [
-                x for x in self.file_list if "locations" in x
+                x for x in self.file_list if x.endswith("_locations.npy")
             ]  # parse out location files
 
     def __len__(self):
