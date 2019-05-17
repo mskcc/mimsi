@@ -15,6 +15,7 @@ either version 3 or later. See the LICENSE file for details
 
 """
 import os
+import errno
 import numpy as np
 import scipy.stats as sps
 import argparse
