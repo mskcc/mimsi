@@ -33,6 +33,23 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def evaluate(model, eval_loader, cuda, save, save_format, save_loc, name, confidence):
+    def sample_name_parser(sample):
+        """
+        Helper function to check whether both Tumor and
+        Matched normal names can be retrieved from the
+        sample name.
+        """
+        if sample.count("_") == 0:
+            return [sample, ""]
+        elif sample.count("_") > 1:
+            raise Exception(
+                (
+                    "More than one '_' character in sampe name {}. Expected one (Tumor_Normal) or none (Tumor)."
+                ).format(sample)
+            )
+        else:
+            return sample.split("_")
+
     model.eval()
     sample_list = []
     results_nparray = np.empty([0, 10])
@@ -77,18 +94,19 @@ def evaluate(model, eval_loader, cuda, save, save_format, save_loc, name, confid
                 print("Exception when creating directory to store final results.")
                 raise
 
-        if save_format == "npy" or save_format == "both":
+        if save_format in ["npy", "both"]:
             for sample, array in dict(zip(sample_list, results_nparray)).items():
                 np.save(save_loc + "/" + sample + "_results.npy", array)
 
-        if save_format == "tsv" or save_format == "both":
-            if len(sample_list) == 1:
+        if save_format in ["tsv", "both"]:
+            if len(sample_list) == 1 and not name:
                 name = sample_list[0]
             with open(save_loc + "/" + name + "_results.txt", "w") as f:
                 f.write(
                     "\t".join(
                         [
-                            "Sample",
+                            "Tumor",
+                            "Normal",
                             "Min_MSI_Score",
                             "Max_MSI_Score",
                             "Mean_MSI_Score",
@@ -101,7 +119,8 @@ def evaluate(model, eval_loader, cuda, save, save_format, save_loc, name, confid
                 )
                 for sample, array in dict(zip(sample_list, results_nparray)).items():
                     summary_stats = nparray_stats(array, confidence)
-                    f.write(sample + "\t" + summary_stats + "\n")
+                    Tumor, Normal = sample_name_parser(sample)
+                    f.write(Tumor + "\t" + Normal + "\t" + summary_stats + "\n")
 
 
 def nparray_stats(nparray, confidence):
