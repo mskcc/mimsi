@@ -46,21 +46,21 @@ def process(line, bamfile, normalbamfile, covg):
     the vector and its location is returned to the wrapper function
     """
     # line = line.decode('utf8').strip()
-    vals = line.split("\t")
+    chrom, start, repeat_unit_length, repeat_unit_binary, repeat_times = line.split(
+        "\t"
+    )[0:5]
 
-    if not vals[0].isdigit():
+    if not chrom.isdigit():
         return (None, None)
 
-    if int(vals[2]) == 1 and int(vals[4]) < 10:
+    if int(repeat_unit_length) == 1 and int(repeat_times) < 10:
         return (None, None)
 
-    if int(vals[2]) < 5 and int(vals[4]) < 5:
+    if int(repeat_unit_length) < 5 and int(repeat_times) < 5:
         return (None, None)
 
-    chrom = vals[0]
-    start = int(vals[1])
-    end = start + int(vals[2]) * int(vals[4])
-    total_len = end - start
+    end = int(start) + int(repeat_unit_length) * int(repeat_times)
+    total_len = end - int(start)
     if total_len < 5 or total_len > 40:
         return (None, None)
     tumor_test = Bam2Tensor(
