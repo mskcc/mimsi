@@ -3,10 +3,9 @@ python:
     - 2.7
     - 3.5
     - 3.6
-git:
-    depth: false
 before_install:
     - sudo apt-get -y update
+    - git fetch --tags
 install:
     - pip --no-cache-dir install . --quiet
     - pip --no-cache-dir install nose --quiet
