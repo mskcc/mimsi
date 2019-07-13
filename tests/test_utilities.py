@@ -114,6 +114,15 @@ def test_200x_model():
 
 def batch_test():
 
+    # Update case list with full path to bam file
+    global case_list
+    file_path = os.path.dirname(os.path.abspath(case_list))
+    cases = pd.read_csv(case_list, sep="\t", header=0)
+    cases["Tumor_Bam"] = cases["Tumor_Bam"].apply(lambda x: os.path.join(file_path, x))
+    cases["Normal_Bam"] = cases["Normal_Bam"].apply(lambda x: os.path.join(file_path, x))
+    cases.to_csv(vector_folder + "/test_case_list.txt", header=True, sep="\t", index=False)
+    case_list = vector_folder + "/test_case_list.txt"
+
     # test data creation
     create_data(ms_list, vector_folder, 50, 16, case_list, None, None, None, None)
 
