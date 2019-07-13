@@ -45,6 +45,7 @@ MiMSI is implemented in (Py)Torch using Python 2.7. We've included a requirement
 
 Just note that the following packages are required:
 * (Py)Torch
+* Pandas
 * Numpy
 * Sklearn
 * Pysam
@@ -70,14 +71,14 @@ MiMSI requires two main inputs - the tumor/normal pair of ```.bam``` files for t
 
 #### Tumor & Normal .bam files
 
-If you are only analyzing one sample, the tumor and normal bam files can be specified as command line args (see "Testing an Individual Sample" below). Additionally, if you would like to process multiple samples in one batch the tool can accept a tab-separated file listing each sample. Below is an example input file:
+If you are only analyzing one sample, the tumor and normal bam files can be specified as command line args (see "Testing an Individual Sample" below). Single sample analysis is performed only to evaluate the MSI/MSS status of the sample. Therefore, the label for that sample will be defaulted to '-1' (see below for more details regarding labels). Additionally, if you would like to process multiple samples in one batch the tool can accept a tab-separated file listing each sample with headers as shown below:
 
 ```
-sample-id-1     /tumor/bam/file/location    /normal/bam/file/location   label
-sample-id-2     /tumor/bam/file/location2    /normal/bam/file/location2 label
+Tumor_ID	Tumor_Bam	Normal_Bam	Normal_ID	Label
+sample-id-1     /tumor/bam/file/location    /normal/bam/file/location   normal1	-1
+sample-id-2     /tumor/bam/file/location2    /normal/bam/file/location2 normal2	-1
 ```
-
-The first column should contain a unique sample id, while the second and third columns specify the full filesystem path for the tumor and normal ```.bam``` files, respectively. The fourth column is optional. See below for explanations of the labels. The vectors and final classification results will be named according to the sample id column, so be sure to use something that is unique and easily recognizable to avoid errors.
+The columns can be in any order as long as the column headers match the headers shown above. Note that the character '_' is not allowed in Tumor_ID and Normal_ID values. The Normal_ID column/values are optional. If Normal_ID is given for a tumor/normal pair, the npy array and final results will include the Normal_ID. Otherwise, only Tumor_ID will be reported. The Tumor_Bam and Normal_Bam columns specify the full filesystem path for the tumor and normal ```.bam``` files, respectively. The Label column is also optional. Default value will be set to '-1'. See below for explanations of the labels. The vectors and final classification results will be named according to the Tumor_ID, and optionally, Normal_ID columns, so be sure to use something that is unique and easily recognizable to avoid errors.
 
 #### List of Microsatellite Regions
 
