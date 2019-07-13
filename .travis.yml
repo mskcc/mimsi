@@ -5,7 +5,9 @@ python:
     - 3.6
 before_install:
     - sudo apt-get -y update
-    - git fetch --tags
+    - git clone https://github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_REPO_SLUG
+    - cd $TRAVIS_REPO_SLUG
+    - git checkout -qf $TRAVIS_COMMIT
 install:
     - pip --no-cache-dir install . --quiet
     - pip --no-cache-dir install nose --quiet
