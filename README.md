@@ -41,7 +41,7 @@ Following successfuly installation, the functions required to run MiMsi should b
 
 ### Required Libraries
 
-MiMSI is implemented in (Py)Torch using Python 2.7. We've included a requirements.txt file for use in pip. We recommend utilizing virtualenv, but feel free to use other environments like conda, local pip, etc.
+MiMSI is implemented in (Py)Torch using Python 2.7. We've included a requirements.txt file for use with pip. We recommend utilizing virtualenv, but feel free to use other environments like conda, local pip, etc.
 
 Just note that the following packages are required:
 * (Py)Torch
@@ -60,7 +60,7 @@ pip install -r requirements.txt
 
 ## Running a Full Analysis
 
-MiMSI is comprised of two main steps. The first is an NGS Vector creation stage, where the aligned reads are encoded into a form that can be interpreted by our model. The second stage is the actual evalution, where we input the collection of microsatellite instances for a sample into the pre-trained model to determine a classification for the collection. For convenience, we've packaged both of these stages into a python script that executes them together. If you'd like to run the steps individually (perhaps to train the model from scratch) please see the section "Running Analysis Components Separately" below.
+MiMSI is comprised of two main steps. The first is an NGS Vector creation stage, where the aligned reads are encoded into a form that can be interpreted by our model. The second stage is the actual evaluation, where we input the collection of microsatellite instances for a sample into the pre-trained model to determine a classification for the collection. For convenience, we've packaged both of these stages into a python script that executes them together. If you'd like to run the steps individually (perhaps to train the model from scratch) please see the section "Running Analysis Components Separately" below.
 
 More details on the MiMSI methods will be available in our pre-print, coming soon.
 
@@ -82,7 +82,7 @@ The columns can be in any order as long as the column headers match the headers 
 
 #### List of Microsatellite Regions
 
-A list of microsatellite regions needs to be provided as a tab-seperated text file. A (very) short example list demonstrating the required columns is provided in the ```/utils/example_ms_list.txt``` file. A gzip compressed version of the file we used in testing/training is also available in the utils directory as 'microsatellites.list.gz'. NOTE: Remember to unzip 'microsatellites.list.gz' to 'microsatellites.list' in the 'utils' directory, if you wish to include the data as part of the build package or use the file with the argument --microsatellites-list. These files were generated utilizing the excellent MSI Scan functionality from [MSISensor](https://github.com/ding-lab/msisensor).
+A list of microsatellite regions needs to be provided as a tab-separated text file. A (very) short example list demonstrating the required columns is provided in the ```/utils/example_ms_list.txt``` file. A gzip compressed version of the file we used in testing/training is also available in the utils directory as 'microsatellites.list.gz'. NOTE: Remember to unzip 'microsatellites.list.gz' to 'microsatellites.list' in the 'utils' directory, if you wish to include the data as part of the build package or use the file with the argument --microsatellites-list. These files were generated utilizing the excellent MSI Scan functionality from [MSISensor](https://github.com/ding-lab/msisensor).
 
 ### Running an individual sample
 
@@ -90,16 +90,16 @@ To run an individual sample,
 
 ```
 cd /path/to/mimsi
-python -m analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id ‘my-unique-case’ --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
+python -m analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id my-unique-tumor-id --norm-case-id my-unique-normal-id --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
 ```
 
 Or as command-line tool:
 
 ```
-analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id ‘my-unique-case’ --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
+analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id my-unique-tumor-id --norm-case-id my-unique-normal-id --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
 ```
 
-The tumor-bam and normal-bam args specify the .bam files the pipeline will use when building the input vectors. These vectors will be saved to disk in the location indicated by the ```save-location``` arg. WARNING: Exisitng files in this directory in the formats *_locations.npy and *_data.npy will be deleted! The format for the filename of the built vectors is ```{case-id}_data_{label}.npy``` and ```{case-id}_locations_{label}.npy```. The ```data``` file contains the N x coverage x 40 x 3 vector for the sample, where N is the number of microsatellite loci that were sucessfully converted to vectors. The ```locations``` file is a list of all the loci used to build the ```data``` vector, with the same ordering. These locations are saved in the event that you'd like to investigate how different loci are processed. The label is defaulted to -1 for evaluation cases, and won't be used in any reported calculations. The label assignment is only relevant for training/testing the model from scratch (see below section on Training). The results of the classifier are printed to standard output, so you can capture the raw probability score by saving the output as shown in our example (single_case_analysis.out). If you want to do further processing on results, add the ```--save``` param to automatically save the classification score to disk. The evaluation script repeats 10x for each sample, that way you can create a confidence interval for each prediction.
+The tumor-bam and normal-bam args specify the .bam files the pipeline will use when building the input vectors. These vectors will be saved to disk in the location indicated by the ```save-location``` arg. WARNING: Existing files in this directory in the formats *_locations.npy and *_data.npy will be deleted! The format for the filename of the built vectors is ```{case-id}_data_{label}.npy``` and ```{case-id}_locations_{label}.npy```. The ```data``` file contains the N x coverage x 40 x 3 vector for the sample, where N is the number of microsatellite loci that were successfully converted to vectors. The ```locations``` file is a list of all the loci used to build the ```data``` vector, with the same ordering. These locations are saved in the event that you'd like to investigate how different loci are processed. The label is defaulted to -1 for evaluation cases, and won't be used in any reported calculations. The label assignment is only relevant for training/testing the model from scratch (see below section on Training). The results of the classifier are printed to standard output, so you can capture the raw probability score by saving the output as shown in our example (single_case_analysis.out). If you want to do further processing on results, add the ```--save``` param to automatically save the classification score to disk. The evaluation script repeats 10x for each sample, that way you can create a confidence interval for each prediction.
 
 This pipeline can be run on both GPU and CPU setups. We've also provided an example lsf submission file - ```/utils/single-sample-full.lsf```. Just keep in mind that your institution's lsf setup may differ from our example.
 
@@ -129,19 +129,19 @@ In order to utilize our NGS alignments as inputs to a deep model they need to be
 
 ```
 cd /path/to/mimsi
-python -m data.generate_vectors.create_data --case-list /path/to/case_list.txt --cores 16  --microsatellites-list /path/to/microsatellites_list.txt --save-location /path/to/save/vectors --coverage 100 --is-labeled 1 > generate_vector.out
+python -m data.generate_vectors.create_data --case-list /path/to/case_list.txt --cores 16  --microsatellites-list /path/to/microsatellites_list.txt --save-location /path/to/save/vectors --coverage 100 > generate_vector.out
 ```
 
 Or as command-line tool
 ```
-create_data --case-list /path/to/case_list.txt --cores 16  --microsatellites-list /path/to/microsatellites_list.txt --save-location /path/to/save --coverage 100 --is-labeled 1 > generate_vector.out
+create_data --case-list /path/to/case_list.txt --cores 16  --microsatellites-list /path/to/microsatellites_list.txt --save-location /path/to/save --coverage 100 > generate_vector.out
 ```
 
 
-The ```--is-labeled``` flag is especially important if you plan on using the built vectors for training and testing. If you're only evaluating a sample a default label of -1 will be used, but if you want to train/test you'll need to provide that information to the script so that a relavant loss can be calculated. Labels can be provided as a fourth column in the case list text file, and should take on a value of -1 for MSS cases and 1 for MSI cases. Is also worth noting that this script was designed to be run in a parallel computing environment. The microsatellites list file is broken up into chunks, and separate threads handle processing each chunk. The microsatellite instance vectors for each chunk (if any) are then aggregated to create the full sample. You can modify the number of concurrent slots by setting the ```--cores``` arg. An example lsf submission script is available in ```utils/multi-sample-vector-creation.lsf```
+The ```--is-labeled``` flag is especially important if you plan on using the built vectors for training and testing. If you're only evaluating a sample a default label of -1 will be used, but if you want to train/test you'll need to provide that information to the script so that a relevant loss can be calculated. Labels can be provided as a fourth column in the case list text file, and should take on a value of -1 for MSS cases and 1 for MSI cases. Is also worth noting that this script was designed to be run in a parallel computing environment. The microsatellites list file is broken up into chunks, and separate threads handle processing each chunk. The microsatellite instance vectors for each chunk (if any) are then aggregated to create the full sample. You can modify the number of concurrent slots by setting the ```--cores``` arg. An example lsf submission script is available in ```utils/multi-sample-vector-creation.lsf```
 
 ### Evaluation
-If you have a directory of built vectors you can run just the evalution step using the ```main/evaluate_samples.py``` script.
+If you have a directory of built vectors you can run just the evaluation step using the ```main/evaluate_samples.py``` script.
 
 ```
 cd /path/to/mimsi
@@ -156,7 +156,7 @@ evaluate_sample --saved-model ./model/mimsi_mskcc_impact_200.model --vector-loca
 Just as with the ```analyze.py``` script output will be directed to standard out, and you can save the results to disk via the ```--save``` flag.
 
 ## Training the Model from Scratch
-We've included a pretrained model file in the ```model/``` directory for evaluation, but if you'd like to try to build a new version from scratch with your own data we've also included our training and testing script in ```main/mi_msi_train_test.py```
+We've included a pre-trained model file in the ```model/``` directory for evaluation, but if you'd like to try to build a new version from scratch with your own data we've also included our training and testing script in ```main/mi_msi_train_test.py```
 
 ```
 cd /path/to/mimsi
