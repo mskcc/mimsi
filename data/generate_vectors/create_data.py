@@ -201,7 +201,15 @@ def save_bag(tumor_sample, label, data, locations, save_loc, normal_sample=None)
 
 
 def create_sample_level_data(
-    tumor_bam, normal_bam, m_list, save_loc, label, covg, cores, case_id, norm_case_id
+    tumor_bam,
+    normal_bam,
+    m_list,
+    save_loc,
+    covg,
+    cores,
+    case_id,
+    norm_case_id,
+    label=None,
 ):
     """
     Wrapper function that process a single tumor and normal pairs
@@ -221,6 +229,8 @@ def create_sample_level_data(
             )
 
     map(name_check, [case_id, norm_case_id])
+    if label is None:
+        label = -1
     try:
         # convert
         result = convert_bam(tumor_bam, normal_bam, m_list, covg, cores)
@@ -235,16 +245,7 @@ def create_sample_level_data(
 
 
 def create_data(
-    m_list,
-    save_loc,
-    covg,
-    cores,
-    case_list,
-    label,
-    tumor_bam,
-    normal_bam,
-    tumor_id,
-    normal_id,
+    m_list, save_loc, covg, cores, case_list, tumor_bam, normal_bam, tumor_id, normal_id
 ):
     """
     Main wrapper function in this module that performs the
@@ -297,15 +298,15 @@ def create_data(
             )
 
         if "Label" in case_list_cols and not set(
-            cases[cases["Label"].notnull()].Label.apply(str).values.tolist()
-        ) < set(["+1", "-1"]):
+            cases[cases["Label"].notnull()].Label.apply(int).values.tolist()
+        ) < set([+1, -1]):
             raise Exception(
                 "Label column in case list can be empty or contain one the values +1 (MSI) or -1 (MSS)."
             )
         cases = cases.replace({pd.np.nan: None})
         for index, row in cases.iterrows():
             tumor_id, normal_id, tumor_bam, normal_bam, label = map(
-                lambda x: str(row[x]) if x in row and row[x] else None,
+                lambda x: row[x] if x in row and row[x] else None,
                 ["Tumor_ID", "Normal_ID", "Tumor_Bam", "Normal_Bam", "Label"],
             )
             if tumor_id in sample_list:
@@ -318,32 +319,29 @@ def create_data(
 
             if label is None:
                 label = -1
+            else:
+                label = int(label)
+
             print(str(index + 1) + ". " + tumor_id)
             create_sample_level_data(
                 tumor_bam,
                 normal_bam,
                 m_list,
                 save_loc,
-                label,
                 covg,
                 cores,
                 tumor_id,
                 normal_id,
+                label,
             )
 
     # Otherwise we are just going to convert the given sample
+    # single sample mode will be only for evaluation. Therefore, label
+    #  is not required. Will be defaulted to -1
     else:
         print("1. " + tumor_id)
         create_sample_level_data(
-            tumor_bam,
-            normal_bam,
-            m_list,
-            save_loc,
-            label,
-            covg,
-            cores,
-            tumor_id,
-            normal_id,
+            tumor_bam, normal_bam, m_list, save_loc, covg, cores, tumor_id, normal_id
         )
 
 
@@ -364,11 +362,6 @@ def main():
     )
     single_sample_group.add_argument(
         "--norm-case-id", default=None, help="Normal case name (default: None)"
-    )
-    single_sample_group.add_argument(
-        "--label",
-        default="-1",
-        help="Sample label to denote if a sample is MSI (+1) or MSS (-1) (default: -1)",
     )
 
     batch_mode_group = parser.add_argument_group("Batch Mode")
@@ -403,14 +396,13 @@ def main():
     )
 
     args = parser.parse_args()
-    case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, label, covg, cores, norm_case_id = (
+    case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, covg, cores, norm_case_id = (
         args.case_list,
         args.tumor_bam,
         args.normal_bam,
         args.case_id,
         args.microsatellites_list,
         args.save_location,
-        args.label,
         args.coverage,
         args.cores,
         args.norm_case_id,
@@ -428,7 +420,6 @@ def main():
         covg,
         cores,
         case_list,
-        label,
         tumor_bam,
         normal_bam,
         case_id,

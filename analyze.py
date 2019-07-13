@@ -105,11 +105,6 @@ def main():
     single_sample_group.add_argument(
         "--norm-case-id", default=None, help="Normal case name (default: None)"
     )
-    single_sample_group.add_argument(
-        "--label",
-        default="-1",
-        help="Sample label to denote if a sample is MSI (+1) or MSS (-1) (default: -1)",
-    )
 
     batch_mode_group = parser.add_argument_group("Batch Mode")
     batch_mode_group.add_argument(
@@ -124,7 +119,7 @@ def main():
     )
 
     args = parser.parse_args()
-    case_list, tumor_bam, normal_bam, case_id, norm_case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, save_format, name, label, covg, confidence = (
+    case_list, tumor_bam, normal_bam, case_id, norm_case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, save_format, name, covg, confidence = (
         args.case_list,
         args.tumor_bam,
         args.normal_bam,
@@ -139,7 +134,6 @@ def main():
         args.save,
         args.save_format,
         args.name,
-        args.label,
         args.coverage,
         args.confidence_interval,
     )
@@ -173,7 +167,6 @@ def main():
             covg,
             cores,
             case_list,
-            label,
             tumor_bam,
             normal_bam,
             case_id,
