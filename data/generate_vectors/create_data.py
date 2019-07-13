@@ -29,7 +29,7 @@ import pysam
 import traceback
 from glob import glob
 
-from bam2tensor import Bam2Tensor
+from .bam2tensor import Bam2Tensor
 
 
 # Global variables
