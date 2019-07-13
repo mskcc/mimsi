@@ -1,0 +1,4 @@
+Tumor_ID	Tumor_Bam	Normal_Bam	Normal_ID	Label
+tumor1	/Users/jayakumg/software/dev/mimsi/tests/test.tumor.bam	/Users/jayakumg/software/dev/mimsi/tests/test.normal.bam	normal1	-1
+tumor2	/Users/jayakumg/software/dev/mimsi/tests/test.tumor.bam	/Users/jayakumg/software/dev/mimsi/tests/test.normal.bam	normal2
+tumor3	/Users/jayakumg/software/dev/mimsi/tests/test.tumor.bam	/Users/jayakumg/software/dev/mimsi/tests/test.normal.bam
