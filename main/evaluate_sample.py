@@ -44,7 +44,7 @@ def evaluate(model, eval_loader, cuda, save, save_format, save_loc, name, confid
         elif sample.count("_") > 1:
             raise Exception(
                 (
-                    "More than one '_' character in sampe name {}. Expected one (Tumor_Normal) or none (Tumor)."
+                    "More than one '_' character in sample name {}. Expected one (if both tumor and normal IDs are included) or none (if only Tumor ID is included)."
                 ).format(sample)
             )
         else:
