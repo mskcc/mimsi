@@ -19,6 +19,7 @@ either version 3 or later. See the LICENSE file for details
 
 import argparse
 import numpy as np
+import pandas as pd
 import multiprocessing as mp
 import os
 import errno
@@ -45,21 +46,21 @@ def process(line, bamfile, normalbamfile, covg):
     the vector and its location is returned to the wrapper function
     """
     # line = line.decode('utf8').strip()
-    vals = line.split("\t")
+    chrom, start, repeat_unit_length, repeat_unit_binary, repeat_times = line.split(
+        "\t"
+    )[0:5]
 
-    if not vals[0].isdigit():
+    if not chrom.isdigit():
         return (None, None)
 
-    if int(vals[2]) == 1 and int(vals[4]) < 10:
+    if int(repeat_unit_length) == 1 and int(repeat_times) < 10:
         return (None, None)
 
-    if int(vals[2]) < 5 and int(vals[4]) < 5:
+    if int(repeat_unit_length) < 5 and int(repeat_times) < 5:
         return (None, None)
 
-    chrom = vals[0]
-    start = int(vals[1])
-    end = start + int(vals[2]) * int(vals[4])
-    total_len = end - start
+    end = int(start) + int(repeat_unit_length) * int(repeat_times)
+    total_len = end - int(start)
     if total_len < 5 or total_len > 40:
         return (None, None)
     tumor_test = Bam2Tensor(
@@ -164,7 +165,7 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
     return (all_instances, all_locations)
 
 
-def save_bag(sample, label, data, locations, save_loc):
+def save_bag(tumor_sample, label, data, locations, save_loc, normal_sample=None):
     """ 
     Save the final collection of microsatellite instances to disk to be used
     in later stages of MiMSI. Saves each sample in the following manner:
@@ -181,7 +182,7 @@ def save_bag(sample, label, data, locations, save_loc):
     if len(data) == 0:
         print(
             "Sample %s did not have any microsatellites above the required threshold level. \n",
-            sample,
+            tumor_sample,
         )
         return
 
@@ -191,27 +192,76 @@ def save_bag(sample, label, data, locations, save_loc):
     # save the instance to disk as it's generated, this is very important when
     # generating a large number of samples, otherwise everything will explode when you try
     # to keep storing all your samples in memory
-
-    file_name = save_loc + "/" + sample + "_" + str(label) + "_" + "data"
-    loc_file_name = save_loc + "/" + sample + "_" + str(label) + "_" + "locations"
+    if normal_sample is not None:
+        tumor_sample = "_".join([tumor_sample, normal_sample])
+    file_name = save_loc + "/" + tumor_sample + "_" + str(label) + "_" + "data"
+    loc_file_name = save_loc + "/" + tumor_sample + "_" + str(label) + "_" + "locations"
     np.save(file_name, data)
     np.save(loc_file_name, locations)
 
 
-def create_data(
-    case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, covg, cores
+def create_sample_level_data(
+    tumor_bam,
+    normal_bam,
+    m_list,
+    save_loc,
+    covg,
+    cores,
+    case_id,
+    norm_case_id,
+    label=None,
 ):
-    print("Generating Vectors...")
+    """
+    Wrapper function that process a single tumor and normal pairs
+    and calls downstream functions that tranforms the bam files
+    into vector data
+    """
+
+    def name_check(sample_name):
+        """
+        Helper function to enforce sample name format
+        """
+        if sample_name is None:
+            return
+        if "_" in sample_name:
+            raise Exception(
+                "'_' character not allowed in sample name {}.".format(sample_name)
+            )
+
+    map(name_check, [case_id, norm_case_id])
+    if label is None:
+        label = -1
+    try:
+        # convert
+        result = convert_bam(tumor_bam, normal_bam, m_list, covg, cores)
+        data = result[0]  # the converted vector
+        locations = np.array(result[1])  # the locations utilized
+
+        # save to disk
+        save_bag(case_id, label, data, locations, save_loc, norm_case_id)
+
+    except Exception:
+        raise
+
+
+def create_data(
+    m_list, save_loc, covg, cores, case_list, tumor_bam, normal_bam, tumor_id, normal_id
+):
+    """
+    Main wrapper function in this module that performs the
+    pre-processing steps for single sample or batch mode 
+    """
+    print("Generating vectors for sample:")
 
     # create save directory, if one doesn't already exist
     try:
         os.mkdir(save_loc)
     except OSError as e:
-        if e.errno != os.errno.EEXIST:
+        if e.errno != errno.EEXIST:
             print("Exception when creating directory to store numpy array.")
             raise
 
-    # remove exisiting data and locations npy arrays in the save_loc directory
+    # remove existing data and locations npy arrays in the save_loc directory
     npy_files = glob(save_loc + "/*_locations.npy") + glob(save_loc + "/*_data.npy")
     if len(npy_files) > 0:
         try:
@@ -221,60 +271,78 @@ def create_data(
             if e.errno != errno.ENOENT:  # no such file or directory
                 raise
 
-    # If a file is given use that to generate our data
+    # If a cast list file is given use that to generate our data
     if case_list is not None and case_list != "":
         sample_list = []
 
-        with open(case_list, "r") as f:
-            lines = f.read().splitlines()
-            N = len(lines)
-            data = []
-            labels = []
-            counter = 0
-            chunk_counter = 1
+        cases = pd.read_csv(case_list, sep="\t", header=0)
+        case_list_cols = set(cases.columns.tolist())
+        expected_case_list_cols = [
+            "Tumor_ID",
+            "Tumor_Bam",
+            "Normal_Bam",
+            "Normal_ID",
+            "Label",
+        ]
+        if not case_list_cols <= set(expected_case_list_cols):
+            raise Exception(
+                "Column headers in the case list do not match expected values: {}. Note: Normal_ID column is optional.".format(
+                    ",".join(expected_case_list_cols)
+                )
+            )
 
-            for line in lines:
-                # Get all of our values
-                vals = line.split("\t")
-                sample = vals[0]
-                # Check for duplicate sampleID entries
-                if sample in sample_list:
-                    raise Exception(
-                        "Duplicate entires detected for sampleID {}".format(
-                            sample_id[0]
-                        )
+        # sanity checks
+        if cases[["Tumor_ID", "Tumor_Bam", "Normal_Bam"]].isnull().values.any():
+            raise Exception(
+                "Missing/empty values in one or more of Tumor_ID, Tumor_Bam, Normal_Bam columns in the case list. Please check and try again."
+            )
+
+        if "Label" in case_list_cols and not set(
+            cases[cases["Label"].notnull()].Label.apply(int).values.tolist()
+        ) < set([+1, -1]):
+            raise Exception(
+                "Label column in case list can be empty or contain one the values +1 (MSI) or -1 (MSS)."
+            )
+        cases = cases.replace({pd.np.nan: None})
+        for index, row in cases.iterrows():
+            tumor_id, normal_id, tumor_bam, normal_bam, label = map(
+                lambda x: row[x] if x in row and row[x] else None,
+                ["Tumor_ID", "Normal_ID", "Tumor_Bam", "Normal_Bam", "Label"],
+            )
+            if tumor_id in sample_list:
+                raise Exception(
+                    "Duplicate entires detected for sampleID {} in the case list".format(
+                        tumor_id
                     )
-                sample_list.append(sample)
-                bam_file = vals[1]
-                norm_file = vals[2]
+                )
+            sample_list.append(tumor_id)
+
+            if label is None:
                 label = -1
-                if is_lbled:
-                    label = vals[3]
+            else:
+                label = int(label)
 
-                try:
-                    # convert
-                    result = convert_bam(bam_file, norm_file, m_list, covg, cores)
-
-                    data = result[0]  # the converted vector
-                    locations = np.array(result[1])  # the locations utilized
-
-                    # save to disk
-                    save_bag(sample, label, data, locations, save_loc)
-                    counter += 1
-
-                except Exception as e:
-                    print(e)
-                    print(traceback.format_exc())
-                    break
+            print(str(index + 1) + ". " + tumor_id)
+            create_sample_level_data(
+                tumor_bam,
+                normal_bam,
+                m_list,
+                save_loc,
+                covg,
+                cores,
+                tumor_id,
+                normal_id,
+                label,
+            )
 
     # Otherwise we are just going to convert the given sample
+    # single sample mode will be only for evaluation. Therefore, label
+    #  is not required. Will be defaulted to -1
     else:
-        result = convert_bam(tumor_bam, normal_bam, m_list, covg, cores)
-        data = result[0]  # the converted vector
-        locations = np.array(result[1])  # the location utilized
-
-        # save to disk
-        save_bag(case_id, -1, data, locations, save_loc)
+        print("1. " + tumor_id)
+        create_sample_level_data(
+            tumor_bam, normal_bam, m_list, save_loc, covg, cores, tumor_id, normal_id
+        )
 
 
 def main():
@@ -292,11 +360,14 @@ def main():
         default="TestCase",
         help="Unique identifier for the single sample/case submitted. This will be the filename for any saved results (default: TestCase)",
     )
+    single_sample_group.add_argument(
+        "--norm-case-id", default=None, help="Normal case name (default: None)"
+    )
 
     batch_mode_group = parser.add_argument_group("Batch Mode")
     batch_mode_group.add_argument(
         "--case-list",
-        default="",
+        default=None,
         help="Case List for generating sample vectors in bulk, if specified all other input file args will be ignored",
     )
     batch_mode_group.add_argument(
@@ -304,12 +375,7 @@ def main():
         default="BATCH",
         help="name of the run submitted using --case-list, this will be the filename for any saved results in the tsv format (default: BATCH)",
     )
-    batch_mode_group.add_argument(
-        "--is-labeled",
-        default=False,
-        help="Indicates whether or not the data provided in the case-list file is labeled",
-    )
-
+    # Common arguments
     parser.add_argument(
         "--microsatellites-list",
         default=ROOT_DIR + "/../../utils/microsatellites.list",
@@ -318,7 +384,7 @@ def main():
     parser.add_argument(
         "--save-location",
         default="./generated_samples",
-        help="The location on the filesystem to save the converted vectors (default: Current_working_directory/generated_samples/). WARNING: Exisitng files in this directory in the formats *_locations.npy and *_data.npy will be deleted!",
+        help="The location on the filesystem to save the converted vectors (default: Current_working_directory/generated_samples/). WARNING: Existing files in this directory in the formats *_locations.npy and *_data.npy will be deleted!",
     )
     parser.add_argument(
         "--coverage",
@@ -330,28 +396,34 @@ def main():
     )
 
     args = parser.parse_args()
-    case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, is_lbled, covg, cores = (
+    case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, covg, cores, norm_case_id = (
         args.case_list,
         args.tumor_bam,
         args.normal_bam,
         args.case_id,
         args.microsatellites_list,
         args.save_location,
-        args.is_labeled,
         args.coverage,
         args.cores,
+        args.norm_case_id,
     )
 
+    # sanity check
+    if not any([case_list, tumor_bam]):
+        raise Exception(
+            "One of --case-list (batch mode) or --tumor-bam (single sample mode) must be defined."
+        )
+
     create_data(
+        m_list,
+        save_loc,
+        covg,
+        cores,
         case_list,
         tumor_bam,
         normal_bam,
         case_id,
-        m_list,
-        save_loc,
-        is_lbled,
-        covg,
-        cores,
+        norm_case_id,
     )
 
 

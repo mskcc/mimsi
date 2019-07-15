@@ -102,6 +102,9 @@ def main():
         default="TestCase",
         help="Unique identifier for the single sample/case submitted. This will be the filename for any saved results (default: TestCase)",
     )
+    single_sample_group.add_argument(
+        "--norm-case-id", default=None, help="Normal case name (default: None)"
+    )
 
     batch_mode_group = parser.add_argument_group("Batch Mode")
     batch_mode_group.add_argument(
@@ -114,18 +117,14 @@ def main():
         default="BATCH",
         help="name of the run submitted using --case-list, this will be the filename for any saved results in the tsv format (default: BATCH)",
     )
-    batch_mode_group.add_argument(
-        "--is-labeled",
-        default=False,
-        help="Indicates whether or not the data provided in the case-list file is labeled",
-    )
 
     args = parser.parse_args()
-    case_list, tumor_bam, normal_bam, case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, save_format, name, is_lbled, covg, confidence = (
+    case_list, tumor_bam, normal_bam, case_id, norm_case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, save_format, name, covg, confidence = (
         args.case_list,
         args.tumor_bam,
         args.normal_bam,
         args.case_id,
+        args.norm_case_id,
         args.microsatellites_list,
         args.save_location,
         args.cores,
@@ -135,7 +134,6 @@ def main():
         args.save,
         args.save_format,
         args.name,
-        args.is_labeled,
         args.coverage,
         args.confidence_interval,
     )
@@ -159,25 +157,23 @@ def main():
             print(
                 "Cannot create directory to save intermediate files and final results!"
             )
-            print(traceback.format_exc())
-            return False
+            raise
 
     try:
         # is_labled is false since this is an evaluation pipeline, 50 is the coverage
         create_data(
+            ms_list,
+            save_loc,
+            covg,
+            cores,
             case_list,
             tumor_bam,
             normal_bam,
             case_id,
-            ms_list,
-            save_loc,
-            is_lbled,
-            covg,
-            cores,
+            norm_case_id,
         )
-    except Exception as e:
-        print(traceback.format_exc())
-        return False
+    except Exception:
+        raise
 
     try:
         run_eval(
@@ -192,13 +188,10 @@ def main():
             covg,
             confidence,
         )
-    except Exception as e:
-        print("There was an error while evaluating samples: \n")
-        print(traceback.format_exc())
-        return False
+    except Exception:
+        raise
 
     print("Analysis Complete!")
-    return True
 
 
 if __name__ == "__main__":
