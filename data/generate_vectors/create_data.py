@@ -1,20 +1,45 @@
+Skip to content
+Search or jump to…
+
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@john-ziegler 
+mskcc
+/
+mimsi
+Private
+5
+4
+1
+ Code
+ Issues 0
+ Pull requests 0 Actions
+ Projects 0
+ Wiki
+ Security 0
+ Insights
+ Settings
+mimsi/data/generate_vectors/create_data.py /
+ John Ziegler testing improved vector generation
+00bda8f 3 days ago
+@andurill@evanbiederstedt
+431 lines (368 sloc)  14.4 KB
+  
 """
 MiMSI Vector Generation Utility
-
 Used to create vectors utilized by the MiMSI model during training and evaluation of MSI status in 
 Next-Gen Sequencing Results. Reads a list of microsatellite regions provided via command line argument
 and creates an instance vector for every region from a tumor/normal pair of bam files.
-
 @author: John Ziegler
 Memorial Sloan Kettering Cancer Center 
-Nov. 2018
-
+May 2020
 zieglerj@mskcc.org
-
 (c) 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute, 
 and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, 
 either version 3 or later. See the LICENSE file for details
-
 """
 
 import argparse
@@ -36,7 +61,7 @@ from .bam2tensor import Bam2Tensor
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def process(line, bamfile, normalbamfile, covg):
+def process(line, bam2tensor):
     """
     Process is the most granular conversion function. It converts a single 
     microsatellite into a 100 x L x 3 vector, where 100 is the downsampled
@@ -63,10 +88,8 @@ def process(line, bamfile, normalbamfile, covg):
     total_len = end - int(start)
     if total_len < 5 or total_len > 40:
         return (None, None)
-    tumor_test = Bam2Tensor(
-        bamfile, normalbamfile, str(chrom), int(start), int(end), covg
-    )
-    return (tumor_test.createTensor(), [str(chrom), int(start), int(end)])
+   
+    return (bam2tensor.createTensor(str(chrom), int(start), int(end)), [str(chrom), int(start), int(end)])
 
 
 def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, covg):
@@ -90,9 +113,10 @@ def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, 
 
         bamfile = pysam.AlignmentFile(bam_filename, "rb")
         normalbamfile = pysam.AlignmentFile(norm_filename, "rb")
+        bam2tensor = Bam2Tensor(bamfile, normalbamfile, covg)
 
         for line in lines:
-            result, loc = process(line, bamfile, normalbamfile, covg)
+            result, loc = process(line, bam2tensor)
             if result is not None:
                 # We got one!!!
                 results.append(result)
@@ -100,7 +124,7 @@ def process_wrapper(bam_filename, norm_filename, m_list, chunkStart, chunkSize, 
         return (results, locations)
 
 
-def chunkify(fname, size=10 * 1024 * 1024):
+def chunkify(fname, size):
     """
     Generic helper method to break up a file into many smaller chunks,
     Here we use it to break up the microsatellites list so that we can
@@ -124,7 +148,6 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
     This is the top level function that converts an entire tumor/normal pair of bam files 
     into a vector collection that MiMSI will utilize in subsequent steps. It is setup to run
     in a parallel processing environment, with cores specified as a command line arg in main
-
     The steps it goes through are as follows: 
         1. chunk the list of microsatellites were interested in so that they can be executed 
             in parallel
@@ -138,10 +161,11 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
 
     pool = mp.Pool(int(cores))
     jobs = []
-
+    file_size = os.path.getsize(m_list)
+    chunk_size = int( file_size / (cores ) )
     try:
         # create jobs
-        for chunkStart, chunkSize in chunkify(m_list):
+        for chunkStart, chunkSize in chunkify(m_list, chunk_size):
             jobs.append(
                 pool.apply_async(
                     process_wrapper,
@@ -169,14 +193,11 @@ def save_bag(tumor_sample, label, data, locations, save_loc, normal_sample=None)
     """ 
     Save the final collection of microsatellite instances to disk to be used
     in later stages of MiMSI. Saves each sample in the following manner:
-
         {sample}_{label}_data.npy
         {sample}_{label}_locations.npy
-
     This final filename format is important for later stages of the pipeline,
     as the data loader will parse the underscore deliminated filename to determine
     the sample id and the label. Sample id does need to be unique.
-
     """
     # if no instances that met the coverage threshold were found, return
     if len(data) == 0:
@@ -429,3 +450,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
