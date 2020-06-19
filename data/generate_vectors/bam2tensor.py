@@ -93,10 +93,13 @@ class Bam2Tensor(object):
 
     def createTensor(self, chromosome, start, end):
         cols = 0
+        tumor_result = None
+        normal_result = None
+        
         try:
             read_iterator = self.bam_file.fetch(chromosome, start, end)
-            cols = end - start
             norm_read_iterator = self.normal_bam_file.fetch(chromosome, start, end)
+            cols = end - start
             tumor_result = self.createIndividualBamTensor(read_iterator, start, end, cols)
             normal_result = self.createIndividualBamTensor(norm_read_iterator, start, end, cols)
             
