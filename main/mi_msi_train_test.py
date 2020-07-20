@@ -5,7 +5,7 @@ Used to train and validate a MiMSI model from scratch
 
 @author: John Ziegler
 Memorial Sloan Kettering Cancer Center 
-Nov. 2018
+May 2020
 
 zieglerj@mskcc.org
 
@@ -25,9 +25,9 @@ import torch.utils.data as data_utils
 import torch.optim as optim
 from torch.autograd import Variable
 from sklearn import metrics
-
-from ..data.data_loader import MSIBags
-from ..model.mi_msi_model import MSIModel
+from copy import deepcopy
+from .data.data_loader import MSIBags
+from .model.mi_msi_model import MSIModel
 
 
 def main():
@@ -55,10 +55,9 @@ def main():
 
     args = parser.parse_args()
     # Training settings
-    epochs, lr, reg, seed, , name, train_location, test_location, save =
-    args.epochs, args.lr, args.reg, args.seed, args.name, args.train_location, args.test_location, args.save
+    epochs, lr, reg, seed, name, train_location, test_location, save = args.epochs, args.lr, args.reg, args.seed, args.name, args.train_location, args.test_location, args.save
     cuda = not args.no_cuda and torch.cuda.is_available()
-    generate_model(seed, cuda, epochs, lr, reg, train_location, test_location)
+    generate_model(seed, cuda, epochs, lr, reg, train_location, test_location, save, name)
 
 
 def train(epoch, model, optimizer, train_loader, cuda):
@@ -68,6 +67,9 @@ def train(epoch, model, optimizer, train_loader, cuda):
     for batch_idx, (data, label, locations, sample_id) in enumerate(train_loader):
         bag_label = torch.tensor(int(label[0]))
 
+        # reset gradients
+        optimizer.zero_grad()
+
         # we're not doing the 10x repeats by default, but this could 
         # be modified to handle that by looping this section for
         # every repeat
@@ -75,9 +77,6 @@ def train(epoch, model, optimizer, train_loader, cuda):
         if cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
         data, bag_label = Variable(data), Variable(bag_label)
-
-        # reset gradients
-        optimizer.zero_grad()
 
         # calculate loss and error
         loss, Y_prob, Y_hat = model.calculate_objective(data, bag_label)
@@ -91,6 +90,12 @@ def train(epoch, model, optimizer, train_loader, cuda):
 
         # step
         optimizer.step()
+        data = None
+        label = None
+        locations = None
+        sample_id = None
+        bag_label = None
+        torch.cuda.empty_cache()
 
     # calculate loss and error for epoch
     train_loss /= len(train_loader)
@@ -100,7 +105,7 @@ def train(epoch, model, optimizer, train_loader, cuda):
     return train_loss, train_error
 
 
-def test(test_loader, model, cuda):
+def test(test_loader, model, cuda, save, name):
     model.eval()
     test_loss = 0.
     test_error = 0.
@@ -173,9 +178,9 @@ def test(test_loader, model, cuda):
     print('Test Set, Loss: {:.4f}, Test error: {:.4f}\n'.format(test_loss, test_error))
     print('TP, FP, TN, FN: {:.4f},{:.4f},{:.4f},{:.4f}\n'.format(tp, fp, tn, fn))
     print('AUROC: {:.4f}\n'.format(auroc))
+    return test_loss, test_error
 
-
-def generate_model(seed, cuda, epochs, lr, reg, train_location, test_location):
+def generate_model(seed, cuda, epochs, lr, reg, train_location, test_location, save, name):
     print('Lets Go!!!\n')
     train_loss_list = []
     train_error_list = []
@@ -204,12 +209,12 @@ def generate_model(seed, cuda, epochs, lr, reg, train_location, test_location):
     # by default. To enable repeatitions/augmentation (for downsampling) you can change
     # 1 back to the default of 10 as in evalute_sample.py, just keep in mind the
     # two train/test methods below will need to be looped
-    train_loader = data_utils.DataLoader(MSIBags(train_location, True, True, 1),
+    train_loader = data_utils.DataLoader(MSIBags(train_location, 100, False, True, 1),
                                          batch_size=1,
                                          shuffle=True,
                                          **loader_kwargs)
 
-    test_loader = data_utils.DataLoader(MSIBags(test_location, True, True, 1),
+    test_loader = data_utils.DataLoader(MSIBags(test_location, 100, False, True, 1),
                                         batch_size=1,
                                         shuffle=False,
                                         **loader_kwargs)
@@ -233,15 +238,20 @@ def generate_model(seed, cuda, epochs, lr, reg, train_location, test_location):
         train_loss_list.append(train_loss)
         train_error_list.append(train_error)
 
-        # If this set of weights beats our best loss and error thus far, set the checkpoint
-        if train_loss < best_checkpoint['loss'] and train_error < best_checkpoint['error']:
+        test_loss, test_error = test(test_loader, model, cuda, False, name)
+
+        # If this set of weights beats our best test loss thus far, set the checkpoint
+        if  test_loss < best_checkpoint['loss']:
             best_checkpoint = {
                 'epoch': epoch,
-                'loss': train_loss,
-                'error': train_error,
-                'state_dict': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
+                'loss': test_loss,
+                'error': test_error,
+                'state_dict': deepcopy(model.state_dict()),
+                'optimizer': deepcopy(optimizer.state_dict()),
             }
+
+        test_loss = None
+        test_error = None
 
     if save:
         np.save('./' + name + '_trainerror.npy', train_error_list)
@@ -254,7 +264,7 @@ def generate_model(seed, cuda, epochs, lr, reg, train_location, test_location):
     # Load and test model
     print('Testing the Model... \n')
     model.load_state_dict(best_checkpoint['state_dict'])
-    test(test_loader, model, cuda)
+    final_loss, final_err = test(test_loader, model, cuda)
 
     if save:
         model.cpu()
