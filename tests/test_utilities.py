@@ -38,7 +38,7 @@ from main.evaluate_sample import run_eval
 vector_folder = "./test_dir"
 tumor_bam = "./test.tumor.bam"
 normal_bam = "./test.normal.bam"
-ms_list = "./microsatellites.list"
+ms_list = "./microsatellites_impact_only.list"
 case_list = "./test_case_list.txt"
 
 
@@ -96,7 +96,7 @@ def test_200x_model():
     assert os.path.isfile("./test_dir/tumor_normal_-1_locations.npy")
 
     run_eval(
-        "../model/mimsi_mskcc_impact_200.model",
+        "../model/mimsi_mskcc_impact_v0_2_0.model",
         vector_folder,
         False,
         2,

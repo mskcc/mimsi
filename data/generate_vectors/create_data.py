@@ -3,9 +3,11 @@ MiMSI Vector Generation Utility
 Used to create vectors utilized by the MiMSI model during training and evaluation of MSI status in 
 Next-Gen Sequencing Results. Reads a list of microsatellite regions provided via command line argument
 and creates an instance vector for every region from a tumor/normal pair of bam files.
+
 @author: John Ziegler
 Memorial Sloan Kettering Cancer Center 
 May 2020
+
 zieglerj@mskcc.org
 (c) 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute, 
 and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, 
@@ -369,8 +371,8 @@ def main():
     # Common arguments
     parser.add_argument(
         "--microsatellites-list",
-        default=ROOT_DIR + "/../../utils/microsatellites.list",
-        help="The list of microsatellites to check in the tumor/normal pair (default: utils/microsatellites.list)",
+        default=ROOT_DIR + "/../../tests/microsatellites_impact_only.list",
+        help="The list of microsatellites to check in the tumor/normal pair (default: tests/microsatellites_impact_only.list)",
     )
     parser.add_argument(
         "--save-location",
