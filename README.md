@@ -6,7 +6,7 @@ A deep, multiple instance learning based classifier for identifying Microsatelli
 Made with :heart: and lots of :coffee: by ClinBx @ Memorial Sloan Kettering Cancer Center
 
 ## Summary
-Microsatellite Instability (MSI) is a phenotypic measure of deficiencies in DNA mismatch repair (MMR) machinery. These deficiencies lead to replication slippage in microsatellite regions, resulting in varying lengths of deletions in tumor samples. Detecting proper MSI status with high sensitivity and specificity in cancer patients is a critical priority in clinical genomics, especially after the FDA's recent approval of a targeted therapy for advanced cancer patients with MSI-high phenotype pan-cancer.
+Microsatellite Instability (MSI) is a phenotypic measure of deficiencies in DNA mismatch repair (MMR) machinery. These deficiencies lead to replication slippage in microsatellite regions, resulting in varying lengths of deletions in tumor samples. Detecting proper MSI status with high sensitivity and specificity in cancer patients is a critical priority in clinical genomics, especially after the FDA's approval of a targeted therapy for advanced cancer patients with MSI-high phenotype regardless of cancer type.
 
 Current methods that determine MSI status using sequencing data compare the distributions of nucleotide deletion lengths between tumor and a matched normal with a statistical test. These methods lose sensitivity to accurately assess MSI status in some clinical situations, like low tumor purity samples or samples with low sequencing coverage. MiMSI is a multiple instance learning (MIL) model for predicting MSI phenotype from next-generation sequencing data that demonstrates very high sensitivity even in clinical situations where low purity samples are common.
 
@@ -15,20 +15,11 @@ Current methods that determine MSI status using sequencing data compare the dist
 ### Setup & Install
 
 The source code and prebuilt model can be obtained by cloning this repo onto your local environment.
-NOTE: You need git-lfs in order to clone a copy of the microsatellites.list.gz included in this repo. Follow the instructions below and also refer to https://git-lfs.github.com for more information.
 
 Clone the repository.
 ```
 git clone https://github.com/mskcc/mimsi.git
 cd mimsi
-```
-
-If you wish to use the microsatellites data provided in this repository, you need git lfs. Download and install git lfs using git command line extension (https://git-lfs.github.com). You will need to run this in your repository directory once.
-```
-git lfs install --local --skip-smudge
-git lfs pull --include=microsatellites.list.gz
-cd ./utils
-gunzip microsatellites.list.gz
 ```
 
 Install
@@ -41,7 +32,7 @@ Following successfuly installation, the functions required to run MiMsi should b
 
 ### Required Libraries
 
-MiMSI is implemented in (Py)Torch using Python 2.7. We've included a requirements.txt file for use with pip. We recommend utilizing virtualenv, but feel free to use other environments like conda, local pip, etc.
+MiMSI is implemented in (Py)Torch and has been tested on Python 2.7, 3.5 and 3.6. We've included a requirements.txt file and setup.py script for use with pip. 
 
 Just note that the following packages are required:
 * (Py)Torch
@@ -50,7 +41,6 @@ Just note that the following packages are required:
 * Sklearn
 * Pysam
   
-
 
 If you wish to install using the requirements.txt provided, run:
 
@@ -62,7 +52,7 @@ pip install -r requirements.txt
 
 MiMSI is comprised of two main steps. The first is an NGS Vector creation stage, where the aligned reads are encoded into a form that can be interpreted by our model. The second stage is the actual evaluation, where we input the collection of microsatellite instances for a sample into the pre-trained model to determine a classification for the collection. For convenience, we've packaged both of these stages into a python script that executes them together. If you'd like to run the steps individually (perhaps to train the model from scratch) please see the section "Running Analysis Components Separately" below.
 
-More details on the MiMSI methods will be available in our pre-print, coming soon.
+More details on the MiMSI methods are available in out pre-print.
 
 
 ### Required files
@@ -82,7 +72,7 @@ The columns can be in any order as long as the column headers match the headers 
 
 #### List of Microsatellite Regions
 
-A list of microsatellite regions needs to be provided as a tab-separated text file. A (very) short example list demonstrating the required columns is provided in the ```/utils/example_ms_list.txt``` file. A gzip compressed version of the file we used in testing/training is also available in the utils directory as 'microsatellites.list.gz'. NOTE: Remember to unzip 'microsatellites.list.gz' to 'microsatellites.list' in the 'utils' directory, if you wish to include the data as part of the build package or use the file with the argument --microsatellites-list. These files were generated utilizing the excellent MSI Scan functionality from [MSISensor](https://github.com/ding-lab/msisensor).
+A list of microsatellite regions needs to be provided as a tab-separated text file. A (very) short example list demonstrating the required columns is provided in the ```/utils/example_ms_list.txt``` file. A  version of the file we used in testing/training is also available in the utils directory as 'microsatellites_impact_only.list'. NOTE: The sites present in this file focus on the regions targeted by MSK-IMPACT, the NGS assay utilized in our institute. You may use this or feel free to focus on sites particular to your own panel. These files were generated utilizing the excellent MSI Scan functionality from [MSISensor](https://github.com/ding-lab/msisensor).
 
 ### Running an individual sample
 
@@ -90,13 +80,13 @@ To run an individual sample,
 
 ```
 cd /path/to/mimsi
-python -m analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id my-unique-tumor-id --norm-case-id my-unique-normal-id --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
+python -m analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id my-unique-tumor-id --norm-case-id my-unique-normal-id --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_v0_2_0.model --save
 ```
 
 Or as command-line tool:
 
 ```
-analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id my-unique-tumor-id --norm-case-id my-unique-normal-id --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
+analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id my-unique-tumor-id --norm-case-id my-unique-normal-id --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_v0_2_0.model --save
 ```
 
 The tumor-bam and normal-bam args specify the .bam files the pipeline will use when building the input vectors. These vectors will be saved to disk in the location indicated by the ```save-location``` arg. WARNING: Existing files in this directory in the formats *_locations.npy and *_data.npy will be deleted! The format for the filename of the built vectors is ```{case-id}_data_{label}.npy``` and ```{case-id}_locations_{label}.npy```. The ```data``` file contains the N x coverage x 40 x 3 vector for the sample, where N is the number of microsatellite loci that were successfully converted to vectors. The ```locations``` file is a list of all the loci used to build the ```data``` vector, with the same ordering. These locations are saved in the event that you'd like to investigate how different loci are processed. The label is defaulted to -1 for evaluation cases, and won't be used in any reported calculations. The label assignment is only relevant for training/testing the model from scratch (see below section on Training). The results of the classifier are printed to standard output, so you can capture the raw probability score by saving the output as shown in our example (single_case_analysis.out). If you want to do further processing on results, add the ```--save``` param to automatically save the classification score to disk. The evaluation script repeats 10x for each sample, that way you can create a confidence interval for each prediction.
@@ -108,13 +98,13 @@ Running a batch of samples is extremely similar, just provide a case list file r
 
 ```
 cd /path/to/mimsi
-python -m analyze --case-list /path/to/case_list.txt --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
+python -m analyze --case-list /path/to/case_list.txt --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_v0_2_0.model --save
 ```
 
 Or as command-line tool
 
 ```
-analyze --case-list /path/to/case_list.txt --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_200.model --save
+analyze --case-list /path/to/case_list.txt --microsatellites-list /path/to/microsatellites_file --save-location /path/to/save/ --model ./model/mimsi_mskcc_impact_v0_2_0.model --save
 ```
 
 
@@ -145,12 +135,12 @@ If you have a directory of built vectors you can run just the evaluation step us
 
 ```
 cd /path/to/mimsi
-python -m main.evaluate_sample --saved-model ./model/mimsi_mskcc_impact_200.model --vector-location /path/to/generated/vectors --save --name "eval_sample" > output_log.txt
+python -m main.evaluate_sample --saved-model ./model/mimsi_mskcc_impact_v0_2_0.model--vector-location /path/to/generated/vectors --save --name "eval_sample" > output_log.txt
 ```
 
 Or as command-line tool
 ```
-evaluate_sample --saved-model ./model/mimsi_mskcc_impact_200.model --vector-location /path/to/generated/vectors --save --name "eval_sample" > output_log.txt
+evaluate_sample --saved-model ./model/mimsi_mskcc_impact_v0_2_0.model --vector-location /path/to/generated/vectors --save --name "eval_sample" > output_log.txt
 ```
 
 Just as with the ```analyze.py``` script output will be directed to standard out, and you can save the results to disk via the ```--save``` flag.
