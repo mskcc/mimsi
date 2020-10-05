@@ -257,12 +257,7 @@ def main():
     )
     # Resolve args
     if save_loc == "./mimsi_results":
-        try:
-            save_loc = os.getcwd() + "/mimsi_results"
-        except OSError as e:
-            print("Cannot create directory to save final results!")
-            print(traceback.format_exc())
-            return False
+        save_loc = os.getcwd() + "/mimsi_results"
 
     cuda = not no_cuda and torch.cuda.is_available()
     run_eval(
