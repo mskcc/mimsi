@@ -64,7 +64,7 @@ def train(epoch, model, optimizer, train_loader, cuda):
     model.train()
     train_loss = 0.
     train_error = 0.
-    for batch_idx, (data, label, locations, sample_id) in enumerate(train_loader):
+    for batch_idx, (data, sig, label, locations, sample_id) in enumerate(train_loader):
         bag_label = torch.tensor(int(label[0]))
 
         # reset gradients
@@ -75,11 +75,11 @@ def train(epoch, model, optimizer, train_loader, cuda):
         # every repeat
         data = data[0]
         if cuda:
-            data, bag_label = data.cuda(), bag_label.cuda()
-        data, bag_label = Variable(data), Variable(bag_label)
+            data, sig, bag_label = data.cuda(), sig.cuda(), bag_label.cuda()
+        data, sig, bag_label = Variable(data), Variable(sig), Variable(bag_label)
 
         # calculate loss and error
-        loss, Y_prob, Y_hat = model.calculate_objective(data, bag_label)
+        loss, Y_prob, Y_hat = model.calculate_objective(data, sig, bag_label)
         train_loss += loss.item()
         
         error = model.calculate_classification_error(Y_hat, bag_label)
@@ -125,17 +125,17 @@ def test(test_loader, model, cuda, save, name):
         return
         
     with torch.no_grad():
-        for batch_idx, (data, label, locations, sample_id) in enumerate(test_loader):
+        for batch_idx, (data, sig, label, locations, sample_id) in enumerate(test_loader):
             bag_label = torch.tensor(int(label[0]))
             
             data = data[0] # again, because we're only doing one run
 
             if cuda:
-                data, bag_label = data.cuda(), bag_label.cuda()
-            data, bag_label = Variable(data), Variable(bag_label)
+                data, sig, bag_label = data.cuda(), sig.cuda(), bag_label.cuda()
+            data, sig, bag_label = Variable(data), Variable(sig), Variable(bag_label)
             
             # Do our prediction
-            loss, Y_prob, Y_hat = model.calculate_objective(data, bag_label)
+            loss, Y_prob, Y_hat = model.calculate_objective(data, sig, bag_label)
             test_loss += loss.item()
         
             # save prediction and labels for analysis, if required
