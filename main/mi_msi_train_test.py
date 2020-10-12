@@ -264,7 +264,7 @@ def generate_model(seed, cuda, epochs, lr, reg, train_location, test_location, s
     # Load and test model
     print('Testing the Model... \n')
     model.load_state_dict(best_checkpoint['state_dict'])
-    final_loss, final_err = test(test_loader, model, cuda)
+    final_loss, final_err = test(test_loader, model, cuda, save, name)
 
     if save:
         model.cpu()
