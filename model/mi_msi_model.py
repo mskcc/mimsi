@@ -21,6 +21,7 @@ class MSIModel(nn.Module):
     def __init__(self, coverage=100):
         super(MSIModel, self).__init__()
         self.num_features = 512
+        self.num_sigs = 96
         self.batch_size = 1
         self.coverage = coverage
 
@@ -91,13 +92,18 @@ class MSIModel(nn.Module):
             nn.ReLU(),
         )
 
+
+        # TODO add in an extra linear layer and then a sigmoid and see if that helps with mut sigs
         self.classifier = nn.Sequential(
-            nn.Linear(self.num_features * self.batch_size, 1), nn.Sigmoid()
+            nn.Linear(self.num_features * self.batch_size + self.num_sigs, self.num_features * self.batch_size + self.num_sigs),
+            nn.ReLU(),
+            nn.Linear(self.num_features * self.batch_size + self.num_sigs, 1), 
+            nn.Sigmoid()
         )
 
         self.relu = nn.ReLU()
 
-    def forward(self, x):
+    def forward(self, x, mut_sig):
         x = x.squeeze(0)
         # ResNet style block 1
         out_1 = self.conv1(x)
@@ -148,7 +154,10 @@ class MSIModel(nn.Module):
         # each microsatellite instance vector
         S = torch.mean(I, 0)
 
-        Y_prob = self.classifier(S)
+        #TODO here's where we would incorporate the mut sigs 
+        # something like S = S.concat(sig)
+        combined = torch.concat((S, mut_sig), 1)
+        Y_prob = self.classifier(combined)
 
         # We do a simple threshold at .5 to get our final label
         Y_hat = torch.ge(Y_prob, 0.5).float()
@@ -166,13 +175,13 @@ class MSIModel(nn.Module):
 
         return error
 
-    def calculate_objective(self, X, Y):
+    def calculate_objective(self, X, sig, Y):
         Y = Y.float()
         # convert -1 negative label to 0 for binary cross entropy calc
         if Y == -1:
             Y = 0.0
 
-        Y_prob, Y_hat = self.forward(X)
+        Y_prob, Y_hat = self.forward(X, sig)
 
         Y_prob = torch.clamp(Y_prob, min=1e-5, max=1.0 - 1e-5)
 
