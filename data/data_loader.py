@@ -31,6 +31,7 @@ class MSIBags(Dataset):
         include_locations=True,
         labeled=True,
         num_repeats=10,
+        sigs_file,
     ):
         self.root_dir = root_dir
         self.file_list = os.listdir(root_dir)
@@ -47,6 +48,22 @@ class MSIBags(Dataset):
             self.loc_file_list = [
                 x for x in self.file_list if x.endswith("_locations.npy")
             ]  # parse out location files
+
+        self.sigs = {}
+        if sigs_file:
+            with open(sigs_file, "r") as f:
+                lines = f.readlines()[1:]
+                for line in lines:
+                    line = line.split("\t").strip()
+                    sample_id = line[0]
+                    vector = line[1:]
+                    vector = np.array([float(x) for x in vector])
+                    vect_sum = np.sum(vector)
+                    if vect_sum > 0:
+                        vector = vector / vect_sum
+                    
+                    self.sigs[sample_id] = vector
+
 
     def __len__(self):
         return len(self.data_file_list)
@@ -106,6 +123,7 @@ class MSIBags(Dataset):
         sample_id, label = self.__parsefilename__(self.data_file_list[idx])
         final_bags = []
         bags = self._preprocess(np.load(data_file))
+        sig = self.sigs[sample_id]
         for bag in bags:
 
             bag = [
@@ -131,9 +149,9 @@ class MSIBags(Dataset):
 
         if self.include_locations:
             locations = np.load(loc_file)
-            return final_bags, label, locations, sample_id
+            return final_bags, sig, label, locations, sample_id
 
-        return final_bags, label, 0, sample_id
+        return final_bags, sig, label, 0, sample_id
 
 
 if __name__ == "__main__":
@@ -143,11 +161,11 @@ if __name__ == "__main__":
     DataLoader above. Prints out a success message as well as 
     the dataset mean and standard deviation upon success
     """
-    train_loader = DataLoader(MSIBags("./data", True, True), batch_size=1, shuffle=True)
+    train_loader = DataLoader(MSIBags("./data", 100, True, True, 10, "./sigs_file" ), batch_size=1, shuffle=True)
 
     bag_means = []
     bag_stds = []
-    for batch_idx, (data, label, locations, sample) in enumerate(train_loader):
+    for batch_idx, (data, sig, label, locations, sample) in enumerate(train_loader):
         data = data.squeeze(0)
 
         bag_mean = data.numpy().mean(axis=(0, 2, 3))
