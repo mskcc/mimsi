@@ -174,7 +174,7 @@ def run_eval(
     print("Evaluating Samples, Lets go!!!")
     loader_kwargs = {"num_workers": 1, "pin_memory": True} if cuda else {}
     eval_loader = data_utils.DataLoader(
-        MSIBags(vector_location, coverage, False, False),
+        MSIBags(vector_location, int(coverage), False, False),
         batch_size=1,
         shuffle=False,
         **loader_kwargs
