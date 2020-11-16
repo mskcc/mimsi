@@ -180,7 +180,7 @@ def run_eval(
         **loader_kwargs
     )
 
-    model = MSIModel(coverage)
+    model = MSIModel(int(coverage))
     if cuda:
         model.cuda()
 
