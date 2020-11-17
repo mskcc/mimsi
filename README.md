@@ -5,6 +5,8 @@ A deep, multiple instance learning based classifier for identifying Microsatelli
 
 Made with :heart: and lots of :coffee: by ClinBx @ Memorial Sloan Kettering Cancer Center
 
+Preprint: https://www.biorxiv.org/content/10.1101/2020.09.16.299925v1
+
 ## Summary
 Microsatellite Instability (MSI) is a phenotypic measure of deficiencies in DNA mismatch repair (MMR) machinery. These deficiencies lead to replication slippage in microsatellite regions, resulting in varying lengths of deletions in tumor samples. Detecting proper MSI status with high sensitivity and specificity in cancer patients is a critical priority in clinical genomics, especially after the FDA's approval of a targeted therapy for advanced cancer patients with MSI-high phenotype regardless of cancer type.
 
