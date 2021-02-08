@@ -18,11 +18,12 @@ import torch.nn as nn
 
 
 class MSIModel(nn.Module):
-    def __init__(self, coverage=100):
+    def __init__(self, coverage=100, use_attention=False):
         super(MSIModel, self).__init__()
         self.num_features = 512
         self.batch_size = 1
         self.coverage = coverage
+        self.use_attention = use_attention
 
         # Input is N x (3 x 100 x 40)
         self.conv1 = nn.Sequential(
@@ -91,6 +92,14 @@ class MSIModel(nn.Module):
             nn.ReLU(),
         )
 
+        # Adding attention pooling if it's enabled
+        if self.use_attention:
+            self.attn = nn.Sequential(
+                nn.Linear(self.num_features, 128),
+                nn.Tanh(),
+                nn.Linear(128, self.batch_size)
+            )
+
         self.classifier = nn.Sequential(
             nn.Linear(self.num_features * self.batch_size, 1), nn.Sigmoid()
         )
@@ -144,9 +153,20 @@ class MSIModel(nn.Module):
         )
         I = self.feature_extractor_part2(final_instance_embed)  # N x num_features
 
-        # S is the sample-level embedding, which is the aggregation (via mean) of
-        # each microsatellite instance vector
-        S = torch.mean(I, 0)
+        # S is the sample-level embedding, which is the aggregation (via either attention pooling 
+        # or average pooling) of each microsatellite instance vector
+        if self.use_attention:
+
+            # attention pooling, calculate attention scores and apply them,
+            # using softmax to ensure the scores all sum to 1
+            A = self.attn(I)
+            A = torch.transpose(A, 1, 0)
+            A = nn.functional.softmax(A, dim=1)
+
+            S = torch.mm(A, I)
+        
+        else:
+            S = torch.mean(I, 0)
 
         Y_prob = self.classifier(S)
 
