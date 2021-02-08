@@ -32,7 +32,7 @@ pip install .
 
 Following successfuly installation, the functions required to run MiMSI should be directly registered as command-line accessible tools in your environment.
 
-You can run our test suite via:
+You can run our test suite to verify your installation via:
 ```
 make test
 ```
@@ -41,7 +41,7 @@ make test
 
 ## Running a Full Analysis
 
-MiMSI is comprised of two main steps. The first is an NGS Vector creation stage, where the aligned reads are encoded into a form that can be interpreted by our model. The second stage is the actual evaluation, where we input the collection of microsatellite instances for a sample into the pre-trained model to determine a classification for the collection. For convenience, we've packaged both of these stages into a python script that executes them together. If you'd like to run the steps individually (perhaps to train the model from scratch) please see the section "Running Analysis Components Separately" below.
+MiMSI is comprised of two main steps. The first is an NGS Vector creation stage, where the aligned reads are encoded into a form that can be interpreted by our model. The second stage is the actual evaluation, where we input the collection of microsatellite instances for a sample into the trained model to determine a classification for the sample. For convenience, we've packaged both of these stages into a python script that executes them together. If you'd like to run the steps individually (perhaps to train the model from scratch) please see the section "Running Analysis Components Separately" below.
 
 If you're interested in learning more about the implementation of MiMSI please check out our [pre-print](https://www.biorxiv.org/content/10.1101/2020.09.16.299925v1)!
 
@@ -70,7 +70,7 @@ A list of microsatellite regions needs to be provided as a tab-separated text fi
 To run an individual sample,
 
 ```
-analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id my-unique-tumor-id --norm-case-id my-unique-normal-id --microsatellites-list ./test/microsatellites_impact_only.list --save-location /path/to/save/ --model ./model/mi_msi_v0_4_0_200x.model --save
+analyze --tumor-bam /path/to/tumor.bam --normal-bam /path/to/normal.bam --case-id my-unique-tumor-id --norm-case-id my-unique-normal-id --microsatellites-list ./test/microsatellites_impact_only.list --save-location /path/to/save/ --model ./model/mi_msi_v0_4_0_200x_attn.model  --use-attention --save
 ```
 
 The tumor-bam and normal-bam args specify the .bam files the pipeline will use when building the input vectors. These vectors will be saved to disk in the location indicated by the ```save-location``` arg. WARNING: Existing files in this directory in the formats *_locations.npy and *_data.npy will be deleted! The format for the filename of the built vectors is ```{case-id}_data_{label}.npy``` and ```{case-id}_locations_{label}.npy```. The ```data``` file contains the N x coverage x 40 x 3 vector for the sample, where N is the number of microsatellite loci that were successfully converted to vectors. The ```locations``` file is a list of all the loci used to build the ```data``` vector, with the same ordering. These locations are saved in the event that you'd like to investigate how different loci are processed. The label is defaulted to -1 for evaluation cases, and won't be used in any reported calculations. The label assignment is only relevant for training/testing the model from scratch (see below section on Training). The results of the classifier are printed to standard output, so you can capture the raw probability score by saving the output as shown in our example (single_case_analysis.out). If you want to do further processing on results, add the ```--save``` param to automatically save the classification score to disk. The evaluation script repeats 10x for each sample, that way you can create a confidence interval for each prediction.
@@ -80,18 +80,23 @@ The tumor-bam and normal-bam args specify the .bam files the pipeline will use w
 Running a batch of samples is extremely similar, just provide a case list file rather than an individual tumor/normal pair,
 
 ```
-analyze --case-list /path/to/case_list.txt --microsatellites-list ./test/microsatellites_impact_only.list  --save-location /path/to/save/ --model ./model/mi_msi_v0_4_0_200x.model  --save
+analyze --case-list /path/to/case_list.txt --microsatellites-list ./test/microsatellites_impact_only.list  --save-location /path/to/save/ --model ./model/mi_msi_v0_4_0_200x_attn.model  --use-attention --save
 ```
 
 
 The NGS vectors will be saved in ```save-location``` just as in the single case example. Again, as in the single case example all results are printed to standard out and can be saved to disk by setting the optional ```--save``` flag. Using the```--save-format``` you can choose to save the final results as a numpy array or a .txt file (including summary statistics) or both. The default mode is to save as a .txt file.
+
+
+### Running With Different Models
+MiMSI was developed and tested with varying coverage levels and different pooling mechanisms. We have provided four fully-trained models in the models directory - two different coverage levels (100x and 200x combined tumor & normal) with two different pooling mechanisms (average and attention). If you would like to use the attention models (indicated with an "_attn" suffix) include the ```--use-attention``` flag when calling analyze or evaluate_sample. The coverage levels can be set via the ```--coverage``` cli arg. The 200x model is the default, and for running the 100x models use ```--coverage 50```.  
+
 
 ## Running Analysis Components Separately
 
 The analysis pipeline automates these two steps, but if you'd like to run them individually here's how.
 
 ### Vector Creation
-In order to utilize our NGS alignments as inputs to a deep model they need to be converted into a vector. The full process will be outlined in our paper if you'd like to dive into the details, but for folks that are just interested in creating the data this step can be run individually via the ```data/generate_vectors/create_data.py``` script.
+In order to utilize our NGS alignments as inputs to a deep model they need to be converted into a vector. The full process is outlined in the manuscript linked above, but for folks that are just interested in creating the data this step can be run individually via the ```data/generate_vectors/create_data.py``` script.
 
 
 ```
@@ -105,7 +110,7 @@ The ```--is-labeled``` flag is especially important if you plan on using the bui
 If you have a directory of built vectors you can run just the evaluation step using the ```main/evaluate_samples.py``` script.
 
 ```
-evaluate_sample --saved-model ./model/mi_msi_v0_4_0_200x.model --vector-location /path/to/generated/vectors --save --name "eval_sample" > output_log.txt
+evaluate_sample --saved-model ./model/mi_msi_v0_4_0_200x_attn.model  --use-attention --vector-location /path/to/generated/vectors --save --name "eval_sample" > output_log.txt
 ```
 
 Just as with the ```analyze.py``` script output will be directed to standard out, and you can save the results to disk via the ```--save``` flag.
