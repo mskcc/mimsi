@@ -69,7 +69,7 @@ def test_100x_model():
     assert os.path.isfile("./test_dir/tumor_normal_-1_locations.npy")
 
     run_eval(
-        "../model/mimsi_mskcc_impact.model",
+        "../model/mi_msi_v0_4_0_100x.model",
         vector_folder,
         False,
         2,
@@ -79,6 +79,35 @@ def test_100x_model():
         "test-run",
         50,
         0.95,
+        False,
+    )
+
+    assert os.path.isfile("./test_dir/tumor_normal_results.npy")
+    assert os.path.isfile("./test_dir/test-run_results.txt")
+
+
+def test_100x_attn_model():
+
+    # test data creation
+    create_data(
+        ms_list, vector_folder, 50, 16, None, tumor_bam, normal_bam, "tumor", "normal"
+    )
+
+    assert os.path.isfile("./test_dir/tumor_normal_-1_data.npy")
+    assert os.path.isfile("./test_dir/tumor_normal_-1_locations.npy")
+
+    run_eval(
+        "../model/mi_msi_v0_4_0_100x_attn.model",
+        vector_folder,
+        False,
+        2,
+        True,
+        "both",
+        vector_folder,
+        "test-run",
+        50,
+        0.95,
+        True,
     )
 
     assert os.path.isfile("./test_dir/tumor_normal_results.npy")
@@ -96,7 +125,7 @@ def test_200x_model():
     assert os.path.isfile("./test_dir/tumor_normal_-1_locations.npy")
 
     run_eval(
-        "../model/mimsi_mskcc_impact_v0_2_0.model",
+        "../model/mi_msi_v0_4_0_200x.model",
         vector_folder,
         False,
         2,
@@ -106,6 +135,35 @@ def test_200x_model():
         "test-run",
         100,
         0.95,
+        False,
+    )
+
+    assert os.path.isfile("./test_dir/tumor_normal_results.npy")
+    assert os.path.isfile("./test_dir/test-run_results.txt")
+
+
+def test_200x_attn_model():
+
+    # test data creation
+    create_data(
+        ms_list, vector_folder, 50, 16, None, tumor_bam, normal_bam, "tumor", "normal"
+    )
+
+    assert os.path.isfile("./test_dir/tumor_normal_-1_data.npy")
+    assert os.path.isfile("./test_dir/tumor_normal_-1_locations.npy")
+
+    run_eval(
+        "../model/mi_msi_v0_4_0_200x_attn.model",
+        vector_folder,
+        False,
+        2,
+        True,
+        "both",
+        vector_folder,
+        "test-run",
+        100,
+        0.95,
+        True,
     )
 
     assert os.path.isfile("./test_dir/tumor_normal_results.npy")
@@ -134,7 +192,7 @@ def batch_test():
     assert os.path.isfile("./test_dir/tumor3_-1_locations.npy")
 
     run_eval(
-        "../model/mimsi_mskcc_impact.model",
+        "../model/mi_msi_v0_4_0_100x.model",
         vector_folder,
         False,
         2,
@@ -144,6 +202,7 @@ def batch_test():
         "test-run",
         50,
         0.95,
+        False,
     )
 
     assert os.path.isfile("./test_dir/tumor1_normal1_results.npy")

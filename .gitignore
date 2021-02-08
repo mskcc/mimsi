@@ -1,6 +1,9 @@
 *.pyc
 .gitignore
+__pycache__
 tests/__pycache__
+main/__pycache__
+model__pycache__
 utils/microsatellites.list
 data/generate_vectors/constants.py
 main/constants.py
