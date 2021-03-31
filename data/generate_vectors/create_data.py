@@ -296,7 +296,7 @@ def create_data(
             raise Exception(
                 "Label column in case list can be empty or contain one the values +1 (MSI) or -1 (MSS)."
             )
-        cases = cases.replace({pd.np.nan: None})
+        cases = cases.replace({np.nan: None})
         for index, row in cases.iterrows():
             tumor_id, normal_id, tumor_bam, normal_bam, label = map(
                 lambda x: row[x] if x in row and row[x] else None,

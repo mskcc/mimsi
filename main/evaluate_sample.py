@@ -90,7 +90,7 @@ def evaluate(model, eval_loader, cuda, save, save_format, save_loc, name, confid
         try:
             os.mkdir(save_loc)
         except OSError as e:
-            if e.errno != os.errno.EEXIST:
+            if e.errno != errno.EEXIST:
                 print("Exception when creating directory to store final results.")
                 raise
 
