@@ -28,7 +28,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 from sklearn import metrics
 import traceback
-
+import pkg_resources
 from data.generate_vectors.create_data import create_data
 from main.evaluate_sample import run_eval
 
@@ -38,6 +38,12 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def main():
     parser = argparse.ArgumentParser(description="MiMSI Analysis")
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        default=False,
+        help="Display current version of MiMSI",
+    )
     parser.add_argument(
         "--no-cuda",
         action="store_true",
@@ -125,6 +131,10 @@ def main():
     )
 
     args = parser.parse_args()
+    if args.version:
+        print("MiMSI Case Analysis CLI version - " + pkg_resources.require("MiMSI")[0].version)
+        return 
+
     case_list, tumor_bam, normal_bam, case_id, norm_case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, save_format, name, covg, confidence, use_attention = (
         args.case_list,
         args.tumor_bam,

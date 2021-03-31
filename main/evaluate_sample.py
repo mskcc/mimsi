@@ -22,6 +22,7 @@ import argparse
 import torch
 import torch.utils.data as data_utils
 import torch.optim as optim
+import pkg_resources
 from torch.autograd import Variable
 from sklearn import metrics
 
@@ -90,7 +91,7 @@ def evaluate(model, eval_loader, cuda, save, save_format, save_loc, name, confid
         try:
             os.mkdir(save_loc)
         except OSError as e:
-            if e.errno != os.errno.EEXIST:
+            if e.errno != errno.EEXIST:
                 print("Exception when creating directory to store final results.")
                 raise
 
@@ -192,6 +193,12 @@ def run_eval(
 def main():
     parser = argparse.ArgumentParser(description="MiMSI Sample(s) Evalution Utility")
     parser.add_argument(
+        "--version",
+        action="store_true",
+        default=False,
+        help="Display current version of MiMSI",
+    )
+    parser.add_argument(
         "--no-cuda",
         action="store_true",
         default=False,
@@ -249,6 +256,10 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.version:
+        print("MiMSI Case Evaluation Utility version - " + pkg_resources.require("MiMSI")[0].version)
+        return 
 
     saved_model, vector_location, no_cuda, seed, save, save_format, save_loc, name, coverage, confidence, use_attention = (
         args.model,

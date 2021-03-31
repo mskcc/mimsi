@@ -105,7 +105,7 @@ class MSIBags(Dataset):
 
         sample_id, label = self.__parsefilename__(self.data_file_list[idx])
         final_bags = []
-        bags = self._preprocess(np.load(data_file))
+        bags = self._preprocess(np.load(data_file, allow_pickle=True, encoding="bytes"))
         for bag in bags:
 
             bag = [
