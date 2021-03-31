@@ -29,7 +29,7 @@ def most_recent_tag():
 
 setup(
     name="MiMSI",
-    version=most_recent_tag(),
+    version="v.0.4.1",
     description="A deep, multiple instance learning based classifier for identifying Microsatellite Instability from NGS",
     url="https://github.com/mskcc/mimsi",
     author="John Ziegler",

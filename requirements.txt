@@ -1,13 +1,16 @@
-future==0.18.2
 nose>=1.3.7
 numpy==1.16.1
-pandas==0.24.2
-Pillow==5.3.0
+pandas==0.24.2; python_version <= '2.7'
+pandas
+pillow>=8.1.1
 pysam==0.16.0.1
 python-dateutil==2.8.1
-scikit-learn==0.20.0
-scipy==1.1.0
+scikit-learn>=0.20.0; python_version <= '2.7'
+scikit-learn
+scipy>=1.1.0; python_version <= '2.7'
+scipy
 six==1.11.0
-sklearn==0.0
+sklearn==0.0; python_version <= '2.7'
+sklearn
 torch==1.4.0
 torchvision==0.5.0
