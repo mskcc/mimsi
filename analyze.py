@@ -89,6 +89,12 @@ def main():
         default=0.95,
         help="Confidence interval for the estimated MSI Score reported in the tsv output file (default: 0.95)",
     )
+    parser.add_argument(
+        "--use-attention",
+        action="store_true",
+        default=False,
+        help="Use attention pooling rather than average pooling to aggregate sample embeddings (default: False)",
+    )
 
     single_sample_group = parser.add_argument_group("Single Sample Mode")
     single_sample_group.add_argument(
@@ -119,7 +125,7 @@ def main():
     )
 
     args = parser.parse_args()
-    case_list, tumor_bam, normal_bam, case_id, norm_case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, save_format, name, covg, confidence = (
+    case_list, tumor_bam, normal_bam, case_id, norm_case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, save_format, name, covg, confidence, use_attention = (
         args.case_list,
         args.tumor_bam,
         args.normal_bam,
@@ -136,6 +142,7 @@ def main():
         args.name,
         args.coverage,
         args.confidence_interval,
+        args.use_attention,
     )
     cuda = not no_cuda and torch.cuda.is_available()
 
@@ -187,6 +194,7 @@ def main():
             name,
             covg,
             confidence,
+            use_attention
         )
     except Exception:
         raise

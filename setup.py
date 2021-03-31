@@ -43,7 +43,7 @@ setup(
     packages=find_packages(exclude=["tests*"]),
     py_modules=["analyze"],
     python_requires=">=2.7",
-    package_data={"utils": ["microsatellites.list"], "model": ["*.model"]},
+    package_data={"model": ["*.model"]},
     include_package_data=True,
     entry_points={
         "console_scripts": [

@@ -163,6 +163,7 @@ def run_eval(
     name,
     coverage,
     confidence,
+    use_attention
 ):
     """
     Main wrapper function to load the provided model and initiate evaluation
@@ -180,7 +181,7 @@ def run_eval(
         **loader_kwargs
     )
 
-    model = MSIModel(int(coverage))
+    model = MSIModel(int(coverage), use_attention)
     if cuda:
         model.cuda()
 
@@ -198,7 +199,7 @@ def main():
     )
     parser.add_argument(
         "--model",
-        default=ROOT_DIR + "/../model/mimsi_mskcc_impact_200.model",
+        default=ROOT_DIR + "/../model/mi_msi_v0_4_0_200x.model",
         help="name of the saved model weights to load",
     )
     parser.add_argument(
@@ -240,10 +241,16 @@ def main():
         default=0.95,
         help="Confidence interval for the estimated MSI Score reported in the tsv output file (default: 0.95)",
     )
+    parser.add_argument(
+        "--use-attention",
+        action="store_true",
+        default=False,
+        help="Use attention pooling rather than average pooling to aggregate sample embeddings (default: False)",
+    )
 
     args = parser.parse_args()
 
-    saved_model, vector_location, no_cuda, seed, save, save_format, save_loc, name, coverage, confidence = (
+    saved_model, vector_location, no_cuda, seed, save, save_format, save_loc, name, coverage, confidence, use_attention = (
         args.model,
         args.vector_location,
         args.no_cuda,
@@ -254,6 +261,7 @@ def main():
         args.name,
         args.coverage,
         args.confidence_interval,
+        args.use_attention
     )
     # Resolve args
     if save_loc == "./mimsi_results":
@@ -276,6 +284,7 @@ def main():
         name,
         coverage,
         confidence,
+        use_attention,
     )
 
 
