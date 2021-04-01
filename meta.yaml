@@ -1,0 +1,44 @@
+{% set version = "0.4.1" %}
+
+
+package:
+  name: mimsi
+  version: {{ version }}
+
+source:
+  url: "https://github.com/mskcc/mimsi/archive/refs/tags/v{{ version }}.tar.gz"
+  sha256: 2006e6be546cb01a38a5c0b0e8589023b4235a1746ae93a229e5861dad338174
+
+
+build:
+  number: 0
+  python: {{ python }}
+  noarch: python
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv "
+
+requirements:
+  host:
+    - python
+    - setuptools
+    - pip
+
+  run:
+    - python
+    - future
+    - nose
+    - numpy
+    - pandas
+    - pysam
+    - python-dateutil
+    - scikit-learn
+    - scipy
+    - pytorch
+    - torchvision
+
+
+test:
+  commands:
+    - evaluate_sample --version
+    - analyze --version
+    - create_data --version
+    - mi_msi_train_test --version
