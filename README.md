@@ -14,29 +14,29 @@ Current methods that determine MSI status using sequencing data compare the dist
 
 ## Getting Started
 
-### Setup & Install
 
-The source code and prebuilt model can be obtained by cloning this repo onto your local environment.
+### Installing with conda
+```
+conda install mimsi -c pytorch
+evaluate_sample --version
+```
+*Note that the conda package requires python 3.6, 3.7, or 3.8*
 
-Clone the repository.
+### Installing from source with pip
+
+The source code and prebuilt model can be obtained by cloning this repo onto your local environment:
+
 ```
 git clone https://github.com/mskcc/mimsi.git
 cd mimsi
 ```
 
-Install
+and then to install via pip:
 ```
-cd mimsi #Root directory of the repository that includes the setup.py script.
+cd mimsi # Root directory of the repository that includes the setup.py script.
 pip install .
+evaluate_sample --version
 ```
-
-Following successfuly installation, the functions required to run MiMSI should be directly registered as command-line accessible tools in your environment.
-
-You can run our test suite to verify your installation via:
-```
-make test
-```
-
 
 
 ## Running a Full Analysis
@@ -48,7 +48,11 @@ If you're interested in learning more about the implementation of MiMSI please c
 
 ### Required files
 
-MiMSI requires two main inputs - the tumor/normal pair of ```.bam``` files for the sample you would like to classify and a list of the microsatellite regions the model should check. 
+MiMSI requires three main inputs:
+
+1. The tumor/normal pair of ```.bam``` files for the sample you would like to classify
+2. A list of the microsatellite regions the model should check
+3. The trained model to use in evaluating the sample or samples
 
 #### Tumor & Normal .bam files
 
@@ -64,6 +68,10 @@ The columns can be in any order as long as the column headers match the headers 
 #### List of Microsatellite Regions
 
 A list of microsatellite regions needs to be provided as a tab-separated text file. A (very) short example list demonstrating the required columns is provided in the ```/utils/example_ms_list.txt``` file. A  version of the file we used in testing/training is also available in the utils directory as 'microsatellites_impact_only.list'. NOTE: The sites present in this file focus on the regions targeted by MSK-IMPACT, the NGS assay utilized in our institute. You may use this or feel free to focus on sites particular to your own panel. These files were generated utilizing the excellent MSI Scan functionality from [MSISensor](https://github.com/ding-lab/msisensor).
+
+#### Trained Models
+MiMSI was developed and tested with varying coverage levels and different pooling mechanisms. We have provided four fully-trained models in the models directory - two different coverage levels (100x and 200x combined tumor & normal) with two different pooling mechanisms (average and attention). If you would like to use the attention models (indicated with an "_attn" suffix) include the ```--use-attention``` flag when calling analyze or evaluate_sample. The coverage levels can be set via the ```--coverage``` cli arg. The 200x model is the default, and for running the 100x models use ```--coverage 50```. 
+
 
 ### Running an individual sample
 
@@ -83,12 +91,8 @@ Running a batch of samples is extremely similar, just provide a case list file r
 analyze --case-list /path/to/case_list.txt --microsatellites-list ./test/microsatellites_impact_only.list  --save-location /path/to/save/ --model ./model/mi_msi_v0_4_0_200x_attn.model  --use-attention --save
 ```
 
-
 The NGS vectors will be saved in ```save-location``` just as in the single case example. Again, as in the single case example all results are printed to standard out and can be saved to disk by setting the optional ```--save``` flag. Using the```--save-format``` you can choose to save the final results as a numpy array or a .txt file (including summary statistics) or both. The default mode is to save as a .txt file.
-
-
-### Running With Different Models
-MiMSI was developed and tested with varying coverage levels and different pooling mechanisms. We have provided four fully-trained models in the models directory - two different coverage levels (100x and 200x combined tumor & normal) with two different pooling mechanisms (average and attention). If you would like to use the attention models (indicated with an "_attn" suffix) include the ```--use-attention``` flag when calling analyze or evaluate_sample. The coverage levels can be set via the ```--coverage``` cli arg. The 200x model is the default, and for running the 100x models use ```--coverage 50```.  
+ 
 
 
 ## Running Analysis Components Separately
