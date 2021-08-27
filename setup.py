@@ -29,7 +29,7 @@ def most_recent_tag():
 
 setup(
     name="MiMSI",
-    version="v0.4.3",
+    version="v0.4.4",
     description="A deep, multiple instance learning based classifier for identifying Microsatellite Instability from NGS",
     url="https://github.com/mskcc/mimsi",
     author="John Ziegler",
@@ -49,6 +49,7 @@ setup(
         "console_scripts": [
             "analyze = analyze:main",
             "create_data = data.generate_vectors.create_data:main",
+            "visualize_instance = data.visualize_instance:main",
             "evaluate_sample = main.evaluate_sample:main",
             "mi_msi_train_test = main.mi_msi_train_test:main",
         ]
