@@ -20,7 +20,6 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import os
 from sklearn.preprocessing import normalize
-from torchvision import transforms
 
 
 class MSIBags(Dataset):

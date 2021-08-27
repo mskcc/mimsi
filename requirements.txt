@@ -10,6 +10,5 @@ scikit-learn
 scipy>=1.1.0; python_version <= '2.7'
 scipy
 torch
-torchvision
 matplotlib
 
