@@ -49,16 +49,17 @@ def visualize_instances(sites_to_view, vector, locations, figname):
 
     f, axarr = plt.subplots(len(sites_to_view), 3, figsize=(12,64))
     f.tight_layout()
+    channel_labels = [' CIGAR Values', ' Mapping Quality', ' Reverse Strand']
 
     for j in range(len(sites_to_view)):
         instance = get_instance_by_location(vector, locations, sites_to_view[j])
 
         for i in range(instance.shape[2]):
             if len(sites_to_view) > 1:
-                axarr[j][i].set_title(str(sites_to_view[j]) + " channel " + str(i))
+                axarr[j][i].set_title(str(sites_to_view[j]) + channel_labels[i])
                 axarr[j][i].imshow(instance[:,:,i], aspect='auto')
             else:
-                axarr[i].set_title(str(sites_to_view[j]) + " channel " + str(i))
+                axarr[i].set_title(str(sites_to_view[j]) + channel_labels[i])
                 axarr[i].imshow(instance[:,:,i], aspect='auto')
 
     f.savefig(figname + ".pdf")

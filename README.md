@@ -129,6 +129,30 @@ mi_msi_train_test --name 'model_name' --train-location /path/to/train/vectors/ -
 
 Just note that you will need labels for any vectors utilized in training and testing. This can be accomplished by setting the ```--labeled``` flag in the Vector Creation script (see section above) and including the labels as a final column in the vector generation case list. The weights of the best performing model will be saved as a Torch ".model" file based on the name specified in the command args. Additionally, key metrics (TPR, FPR, Thresholds, AUROC) and train/test loss information are saved to disk as a numpy array. These metrics are also printed to standard out if you'd prefer to capture the results that way. 
 
+## Visualizing Sites
+If you'd like to visualize a microsatellite instance (or instances) we've bundled a QC tool that will output a pdf containing an image of each channel separately. For example, to produce an image of the microsatellite instance at position 99192743 on chromosome 15 and save it as testviz.pdf:
+
+```
+visualize_instance   --vector /path/to/case/vector.npy --locations /path/to/case/locations.npy --site '15,99192743,99192758' --output 'testviz'
+```
+
+You can also visualize multiple sites passing in a sites file rather than one individual location
+
+```
+visualize_instance   --vector /path/to/case/vector.npy --locations /path/to/case/locations.npy --site-list test_sites.csv --output 'testviz'
+```
+
+The ```--site-list``` file must be a list of sites in the format 'chr,start,end' with each site separated by a new line.
+```
+9,139400835,139400849
+2,48032740,48032753
+10,43595836,43595850
+22,41545024,41545038
+2,47635523,47635536
+4,187627659,187627675
+```
+
+
 ## Questions, Comments, Collaborations?
 Please feel free to reach out, I'm available via email - zieglerj@mskcc.org
 
