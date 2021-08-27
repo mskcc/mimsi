@@ -22,6 +22,7 @@ import argparse
 import torch
 import torch.utils.data as data_utils
 import torch.optim as optim
+import pkg_resources
 from torch.autograd import Variable
 from sklearn import metrics
 
@@ -90,7 +91,7 @@ def evaluate(model, eval_loader, cuda, save, save_format, save_loc, name, confid
         try:
             os.mkdir(save_loc)
         except OSError as e:
-            if e.errno != os.errno.EEXIST:
+            if e.errno != errno.EEXIST:
                 print("Exception when creating directory to store final results.")
                 raise
 
@@ -163,6 +164,7 @@ def run_eval(
     name,
     coverage,
     confidence,
+    use_attention
 ):
     """
     Main wrapper function to load the provided model and initiate evaluation
@@ -174,13 +176,13 @@ def run_eval(
     print("Evaluating Samples, Lets go!!!")
     loader_kwargs = {"num_workers": 1, "pin_memory": True} if cuda else {}
     eval_loader = data_utils.DataLoader(
-        MSIBags(vector_location, coverage, False, False),
+        MSIBags(vector_location, int(coverage), False, False),
         batch_size=1,
         shuffle=False,
         **loader_kwargs
     )
 
-    model = MSIModel(coverage)
+    model = MSIModel(int(coverage), use_attention)
     if cuda:
         model.cuda()
 
@@ -191,6 +193,12 @@ def run_eval(
 def main():
     parser = argparse.ArgumentParser(description="MiMSI Sample(s) Evalution Utility")
     parser.add_argument(
+        "--version",
+        action="store_true",
+        default=False,
+        help="Display current version of MiMSI",
+    )
+    parser.add_argument(
         "--no-cuda",
         action="store_true",
         default=False,
@@ -198,7 +206,7 @@ def main():
     )
     parser.add_argument(
         "--model",
-        default=ROOT_DIR + "/../model/mimsi_mskcc_impact_200.model",
+        default=ROOT_DIR + "/../model/mi_msi_v0_4_0_200x.model",
         help="name of the saved model weights to load",
     )
     parser.add_argument(
@@ -240,10 +248,20 @@ def main():
         default=0.95,
         help="Confidence interval for the estimated MSI Score reported in the tsv output file (default: 0.95)",
     )
+    parser.add_argument(
+        "--use-attention",
+        action="store_true",
+        default=False,
+        help="Use attention pooling rather than average pooling to aggregate sample embeddings (default: False)",
+    )
 
     args = parser.parse_args()
 
-    saved_model, vector_location, no_cuda, seed, save, save_format, save_loc, name, coverage, confidence = (
+    if args.version:
+        print("MiMSI Case Evaluation Utility version - " + pkg_resources.require("MiMSI")[0].version)
+        return 
+
+    saved_model, vector_location, no_cuda, seed, save, save_format, save_loc, name, coverage, confidence, use_attention = (
         args.model,
         args.vector_location,
         args.no_cuda,
@@ -254,6 +272,7 @@ def main():
         args.name,
         args.coverage,
         args.confidence_interval,
+        args.use_attention
     )
     # Resolve args
     if save_loc == "./mimsi_results":
@@ -271,6 +290,7 @@ def main():
         name,
         coverage,
         confidence,
+        use_attention,
     )
 
 

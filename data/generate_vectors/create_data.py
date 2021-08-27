@@ -24,6 +24,7 @@ import sys
 import warnings
 import pysam
 import traceback
+import pkg_resources
 from glob import glob
 
 from .bam2tensor import Bam2Tensor
@@ -296,7 +297,7 @@ def create_data(
             raise Exception(
                 "Label column in case list can be empty or contain one the values +1 (MSI) or -1 (MSS)."
             )
-        cases = cases.replace({pd.np.nan: None})
+        cases = cases.replace({np.nan: None})
         for index, row in cases.iterrows():
             tumor_id, normal_id, tumor_bam, normal_bam, label = map(
                 lambda x: row[x] if x in row and row[x] else None,
@@ -340,6 +341,12 @@ def create_data(
 
 def main():
     parser = argparse.ArgumentParser(description="MiMSI Vector Generation Utility")
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        default=False,
+        help="Display current version of MiMSI",
+    )
 
     single_sample_group = parser.add_argument_group("Single Sample Mode")
     single_sample_group.add_argument(
@@ -389,6 +396,11 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.version:
+        print("MiMSI Vector Creation CLI version - " + pkg_resources.require("MiMSI")[0].version)
+        return 
+
     case_list, tumor_bam, normal_bam, case_id, m_list, save_loc, covg, cores, norm_case_id = (
         args.case_list,
         args.tumor_bam,

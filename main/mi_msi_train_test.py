@@ -23,16 +23,23 @@ import argparse
 import torch
 import torch.utils.data as data_utils
 import torch.optim as optim
+import pkg_resources
 from torch.autograd import Variable
 from sklearn import metrics
 from copy import deepcopy
-from .data.data_loader import MSIBags
-from .model.mi_msi_model import MSIModel
+from data.data_loader import MSIBags
+from model.mi_msi_model import MSIModel
 
 
 def main():
     parser = argparse.ArgumentParser(
         description='MiMSI - A Multiple Instance Learning Model for detecting microsatellite instability in NGS data')
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        default=False,
+        help="Display current version of MiMSI",
+    )
     parser.add_argument('--epochs', type=int, default=40, metavar='N',
                         help='Number of epochs to train (default: 40)')
     parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
@@ -54,6 +61,11 @@ def main():
 
 
     args = parser.parse_args()
+
+    if args.version:
+        print("MiMSI Model Training & Testing CLI version - " + pkg_resources.require("MiMSI")[0].version)
+        return 
+
     # Training settings
     epochs, lr, reg, seed, name, train_location, test_location, save = args.epochs, args.lr, args.reg, args.seed, args.name, args.train_location, args.test_location, args.save
     cuda = not args.no_cuda and torch.cuda.is_available()
@@ -264,7 +276,7 @@ def generate_model(seed, cuda, epochs, lr, reg, train_location, test_location, s
     # Load and test model
     print('Testing the Model... \n')
     model.load_state_dict(best_checkpoint['state_dict'])
-    final_loss, final_err = test(test_loader, model, cuda)
+    final_loss, final_err = test(test_loader, model, cuda, save, name)
 
     if save:
         model.cpu()

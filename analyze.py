@@ -28,7 +28,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 from sklearn import metrics
 import traceback
-
+import pkg_resources
 from data.generate_vectors.create_data import create_data
 from main.evaluate_sample import run_eval
 
@@ -38,6 +38,12 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def main():
     parser = argparse.ArgumentParser(description="MiMSI Analysis")
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        default=False,
+        help="Display current version of MiMSI",
+    )
     parser.add_argument(
         "--no-cuda",
         action="store_true",
@@ -89,6 +95,12 @@ def main():
         default=0.95,
         help="Confidence interval for the estimated MSI Score reported in the tsv output file (default: 0.95)",
     )
+    parser.add_argument(
+        "--use-attention",
+        action="store_true",
+        default=False,
+        help="Use attention pooling rather than average pooling to aggregate sample embeddings (default: False)",
+    )
 
     single_sample_group = parser.add_argument_group("Single Sample Mode")
     single_sample_group.add_argument(
@@ -119,7 +131,11 @@ def main():
     )
 
     args = parser.parse_args()
-    case_list, tumor_bam, normal_bam, case_id, norm_case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, save_format, name, covg, confidence = (
+    if args.version:
+        print("MiMSI Case Analysis CLI version - " + pkg_resources.require("MiMSI")[0].version)
+        return 
+
+    case_list, tumor_bam, normal_bam, case_id, norm_case_id, ms_list, save_loc, cores, saved_model, no_cuda, seed, save, save_format, name, covg, confidence, use_attention = (
         args.case_list,
         args.tumor_bam,
         args.normal_bam,
@@ -136,6 +152,7 @@ def main():
         args.name,
         args.coverage,
         args.confidence_interval,
+        args.use_attention,
     )
     cuda = not no_cuda and torch.cuda.is_available()
 
@@ -187,6 +204,7 @@ def main():
             name,
             covg,
             confidence,
+            use_attention
         )
     except Exception:
         raise
