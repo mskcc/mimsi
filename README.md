@@ -154,7 +154,7 @@ The ```--site-list``` file must be a list of sites in the format 'chr,start,end'
 
 
 ## Questions, Comments, Collaborations?
-Please feel free to reach out, I'm available via email - zieglerj@mskcc.org
+Please feel free to reach out, I'm available via [email](mailto:jziegler820@gmail.com)!
 
 If you have any issues or feature requests with the tool please don't hesitate to create an issue on this repo. We will address them as soon as possible.
 
