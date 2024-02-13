@@ -148,7 +148,7 @@ class MSIModel(nn.Module):
         out_4_2 = out_4_2 + res6
         final_instance_embed = self.relu(out_4_2)
 
-        final_instance_embed = final_instance_embed.view(
+        final_instance_embed = final_instance_embed.reshape(
             -1, 64 * int(self.coverage / 2) * 10
         )
         I = self.feature_extractor_part2(final_instance_embed)  # N x num_features
