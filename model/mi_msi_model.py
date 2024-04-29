@@ -2,13 +2,13 @@
 MiMSI Model
 
 @author: John Ziegler
-Memorial Sloan Kettering Cancer Center 
+Memorial Sloan Kettering Cancer Center
 Nov. 2018
 
 zieglerj@mskcc.org
 
-(c) 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute, 
-and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, 
+(c) 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute,
+and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
 either version 3 or later. See the LICENSE file for details
 
 """
@@ -78,10 +78,10 @@ class MSIModel(nn.Module):
             nn.Conv2d(64, 128, kernel_size=1, stride=1)  # 128 x 13 x 5
         )
 
-        """ 
-            This is the section of the model that takes all of the instance-level 
-            feature embeddings and creates the final N x num_features vectors for 
-            each instance. These instance vectors will be averaged to get the 
+        """
+            This is the section of the model that takes all of the instance-level
+            feature embeddings and creates the final N x num_features vectors for
+            each instance. These instance vectors will be averaged to get the
             sample level embedding before input into the final classification
             layer
         """
@@ -148,12 +148,12 @@ class MSIModel(nn.Module):
         out_4_2 = out_4_2 + res6
         final_instance_embed = self.relu(out_4_2)
 
-        final_instance_embed = final_instance_embed.view(
+        final_instance_embed = final_instance_embed.reshape(
             -1, 64 * int(self.coverage / 2) * 10
         )
         I = self.feature_extractor_part2(final_instance_embed)  # N x num_features
 
-        # S is the sample-level embedding, which is the aggregation (via either attention pooling 
+        # S is the sample-level embedding, which is the aggregation (via either attention pooling
         # or average pooling) of each microsatellite instance vector
         if self.use_attention:
 
@@ -164,7 +164,7 @@ class MSIModel(nn.Module):
             A = nn.functional.softmax(A, dim=1)
 
             S = torch.mm(A, I)
-        
+
         else:
             S = torch.mean(I, 0)
 
