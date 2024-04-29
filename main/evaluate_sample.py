@@ -4,13 +4,13 @@ MiMSI Evalution Utility
 Used to evaluate (test) a sample or samples for MSI status based on a tumor/normal vector
 
 @author: John Ziegler
-Memorial Sloan Kettering Cancer Center 
+Memorial Sloan Kettering Cancer Center
 Nov. 2018
 
 zieglerj@mskcc.org
 
-(c) 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute, 
-and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, 
+(c) 2018 Memorial Sloan Kettering Cancer Center.  This program is free software: you may use, redistribute,
+and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
 either version 3 or later. See the LICENSE file for details
 
 """
@@ -129,11 +129,16 @@ def nparray_stats(nparray, confidence):
     calculate and report summary stats for each numpy array/sample
     """
 
-    def msi_status(msi_score):
+    def msi_status(uci, lci):
         """
         helper function to assess MSI status
         """
-        return "MSS" if msi_score <= 0.5 else "MSI"
+        if uci <= 0.5 and lci <= 0.5:
+            return "MSS"
+        elif uci >= 0.5 and lci >= 0.5:
+            return "MSI-H"
+        else:
+            return "MSI-Ind"
 
     n = len(nparray)
     mean, se = np.mean(nparray), sps.sem(nparray)
@@ -259,7 +264,7 @@ def main():
 
     if args.version:
         print("MiMSI Case Evaluation Utility version - " + pkg_resources.require("MiMSI")[0].version)
-        return 
+        return
 
     saved_model, vector_location, no_cuda, seed, save, save_format, save_loc, name, coverage, confidence, use_attention = (
         args.model,
