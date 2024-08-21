@@ -17,7 +17,7 @@ Current methods that determine MSI status using sequencing data compare the dist
 
 ### Installing with conda
 ```
-conda install mimsi -c pytorch
+conda install mimsi -c bioconda
 evaluate_sample --version
 ```
 *Note that the conda package requires python 3.6, 3.7, or 3.8*
@@ -37,7 +37,7 @@ cd mimsi # Root directory of the repository that includes the setup.py script.
 pip install .
 evaluate_sample --version
 ```
-
+On a local machine, build time for MiMSI via pip should be less than 2 minutes, depenent on download speed.
 
 ## Running a Full Analysis
 
@@ -93,7 +93,13 @@ analyze --case-list /path/to/case_list.txt --microsatellites-list ./test/microsa
 
 The NGS vectors will be saved in ```save-location``` just as in the single case example. Again, as in the single case example all results are printed to standard out and can be saved to disk by setting the optional ```--save``` flag. Using the```--save-format``` you can choose to save the final results as a numpy array or a .txt file (including summary statistics) or both. The default mode is to save as a .txt file.
  
+A test case list is provided to test MiMSI funcationality, located in `tests` and can be run as follows:
 
+```
+cd tests
+analyze -case-list test_case_list.txt --microsatellites-list ./microsatellites_impact_only.list --save-location ./ --model ../model/mi_msi_v0_4_0_200x_attn.model --use-attention --save
+```
+With BAM files under 20MB, this test should take a few seconds to complete and will assess the working status of the MiMSI package.
 
 ## Running Analysis Components Separately
 
