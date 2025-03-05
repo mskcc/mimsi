@@ -48,7 +48,7 @@ def process(line, bam2tensor):
         "\t"
     )[0:5]
 
-    if not chrom.isdigit():
+    if not chrom.replace("chr","").isdigit():
         return (None, None)
 
     if int(repeat_unit_length) == 1 and int(repeat_times) < 10:
