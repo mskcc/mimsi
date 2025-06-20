@@ -150,9 +150,10 @@ def nparray_stats(nparray, confidence):
                 np.min(nparray),
                 np.max(nparray),
                 mean,
-                max(0.0, mean - moe),
-                min(1.0, mean + moe),
-                msi_status(mean),
+                max(0.0, mean - moe),  # lci
+                min(1.0, mean + moe),  # uci
+#                msi_status(mean),
+                 msi_status(min(1.0, mean + moe), max(0.0, mean - moe))
             ],
         )
     )
