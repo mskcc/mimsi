@@ -132,10 +132,10 @@ def convert_bam(bamfile, norm_filename, m_list, covg, cores):
     all_instances = []
     all_locations = []
 
-    pool = mp.Pool(int(cores))
+    pool = mp.Pool(cores)
     jobs = []
     file_size = os.path.getsize(m_list)
-    chunk_size = int( file_size / (cores ) )
+    chunk_size = int( file_size / cores )
     try:
         # create jobs
         for chunkStart, chunkSize in chunkify(m_list, chunk_size):
@@ -392,7 +392,10 @@ def main():
         help="Required coverage for both the tumor and the normal. Any coverage in excess of this limit will be randomly downsampled",
     )
     parser.add_argument(
-        "--cores", default=16, help="Number of cores to utilize in parallel"
+        "--cores",
+        default=16,
+        type=int,
+        help="Number of cores to utilize in parallel"
     )
 
     args = parser.parse_args()
