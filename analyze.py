@@ -83,6 +83,7 @@ def main():
     parser.add_argument(
         "--cores",
         default=16,
+        type=int,
         help="Number of cores to utilize in parallel (default: 16)",
     )
     parser.add_argument(
